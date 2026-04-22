@@ -1,0 +1,296 @@
+---
+description: Health & Habit Tracker App – Design System Rules
+globs: ["**/*.tsx", "**/*.jsx", "**/*.css", "**/*.ts"]
+alwaysApply: true
+---
+
+# 🎨 Design System — Health & Habit Tracker
+
+Bu rule, uygulamanın tüm ekranlarında tutarlı bir görsel dil sağlamak için kullanılır.
+Referans ekranlar: Progress/Stats ekranı, Mood/Insights ekranı, Health Data ekranı.
+
+---
+
+## 🎨 Color Palette
+
+```ts
+// colors.ts
+export const colors = {
+  // Backgrounds
+  background: {
+    primary: "#FAF7F4",       // Ana arka plan (krem-beyaz)
+    secondary: "#F5EFE9",     // Kart/section arka planı (açık şeftali)
+    card: "#FFFFFF",          // Beyaz kart yüzeyi
+    overlay: "rgba(0,0,0,0.04)",
+  },
+
+  // Habit / Category Colors (Progress bar & dot indicators)
+  habit: {
+    orange:  "#F5A623",       // Walk / primary habit
+    coral:   "#E8635A",       // Read / warning tonu
+    purple:  "#B388FF",       // Mindfulness / purple
+    sky:     "#64B5F6",       // Writing / mavi
+    green:   "#81C784",       // Secondary habit / tamamlandı
+    teal:    "#4DB6AC",       // Ek renk
+  },
+
+  // Text
+  text: {
+    primary:   "#2C2C2C",     // Ana başlıklar
+    secondary: "#7A7A7A",     // Alt başlık, açıklama
+    tertiary:  "#ABABAB",     // Placeholder, disabled
+    inverse:   "#FFFFFF",
+  },
+
+  // Borders & Dividers
+  border: {
+    light: "#EFEFEF",
+    medium: "#E0D9D2",
+  },
+
+  // Status
+  status: {
+    success: "#81C784",
+    warning: "#F5A623",
+    error:   "#E8635A",
+    neutral: "#ABABAB",
+  },
+
+  // Bottom Tab Bar
+  tab: {
+    active:   "#2C2C2C",
+    inactive: "#ABABAB",
+    badge:    "#E8635A",
+  },
+} as const;
+```
+
+---
+
+## 📐 Typography
+
+```ts
+// typography.ts — SF Pro / System font stack kullan, iOS native hissi için
+export const typography = {
+  fontFamily: {
+    sans: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
+    display: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+  },
+
+  fontSize: {
+    xs:   "11px",
+    sm:   "13px",
+    base: "15px",
+    md:   "17px",
+    lg:   "20px",
+    xl:   "28px",
+    "2xl":"34px",
+    "3xl":"48px",   // Büyük sayısal değerler (toplam rep, adım sayısı)
+  },
+
+  fontWeight: {
+    regular:   "400",
+    medium:    "500",
+    semibold:  "600",
+    bold:      "700",
+  },
+
+  lineHeight: {
+    tight:  "1.2",
+    normal: "1.4",
+    relaxed:"1.6",
+  },
+};
+```
+
+**Kullanım kuralları:**
+- Büyük metrik değerleri (9, 75 bpm, 21s): `3xl / bold`
+- Ekran başlıkları: `xl / bold`
+- Section başlıkları: `md / semibold`
+- Açıklama metinleri: `sm / regular`, renk `text.secondary`
+- Liste item etiketleri: `base / medium`
+
+---
+
+## 📏 Spacing & Layout
+
+```ts
+// spacing.ts
+export const spacing = {
+  0:   "0px",
+  1:   "4px",
+  2:   "8px",
+  3:   "12px",
+  4:   "16px",
+  5:   "20px",
+  6:   "24px",
+  8:   "32px",
+  10:  "40px",
+  12:  "48px",
+} as const;
+
+export const layout = {
+  screenPaddingH: "20px",   // Yatay kenar boşluğu
+  screenPaddingV: "16px",   // Dikey kenar boşluğu
+  sectionGap:     "16px",   // Section'lar arası boşluk
+  cardPadding:    "16px",   // Kart iç boşluğu
+  listItemHeight: "52px",   // Liste öğesi yüksekliği
+  bottomTabHeight:"80px",   // Bottom navigation bar
+  topBarHeight:   "44px",
+};
+```
+
+---
+
+## 🔲 Border Radius
+
+```ts
+export const radius = {
+  sm:   "8px",
+  md:   "12px",
+  lg:   "16px",
+  xl:   "20px",
+  full: "9999px",  // Pill butonlar, badge'ler, tag'ler
+  card: "16px",    // Tüm kart bileşenleri
+};
+```
+
+---
+
+## 🪟 Shadows & Elevation
+
+```ts
+export const shadows = {
+  none: "none",
+  sm:   "0 1px 3px rgba(0,0,0,0.06)",
+  md:   "0 2px 8px rgba(0,0,0,0.08)",
+  lg:   "0 4px 16px rgba(0,0,0,0.10)",
+  card: "0 2px 8px rgba(0,0,0,0.06)",  // Kart varsayılanı
+};
+```
+
+**Kural:** Yüksek kontrast shadow kullanma. Uygulamanın tonu soft/organic — gölgeler hafif ve diffuse olmalı.
+
+---
+
+## 🧩 Component Patterns
+
+### Card
+```tsx
+// Her section bir kart içinde, beyaz bg, hafif gölge, 16px radius
+<div style={{
+  backgroundColor: colors.background.card,
+  borderRadius: radius.card,
+  padding: layout.cardPadding,
+  boxShadow: shadows.card,
+  marginBottom: layout.sectionGap,
+}}>
+```
+
+### Stat Row (ör. "Total perfect days — 3")
+```tsx
+// Sol: ikon + başlık + açıklama | Sağ: değer (bold)
+// Aralarında hafif divider (border.light)
+// Yükseklik: min 60px, padding: 12px 16px
+```
+
+### Habit List Item
+```tsx
+// Sol: colored dot (8px circle) + etiket
+// Sağ: sayı değeri (semibold)
+// Satır yüksekliği: 44-52px
+// Arka plan: şeffaf, hover'da background.overlay
+```
+
+### Progress Bar (Stacked / Segmented)
+```tsx
+// Tam genişlik, yükseklik: 48px, radius: full
+// Her segment habit rengiyle dolduruluyor
+// İçinde beyaz sayı etiketi (sm / semibold)
+// Aralarında 2px beyaz gap
+```
+
+### Mood Graph
+```tsx
+// Hafif pembe/şeftali bg kart içinde
+// X ekseni: tarihler (xs / regular / text.tertiary)
+// Y ekseni: emoji'ler, hizalanmış grid
+// Alt: tamamlanma durumu semboller (●, ○, ×)
+```
+
+### Health Data Row
+```tsx
+// Üst: kategori ikonu (16px) + başlık + zaman damgası (text.tertiary)
+// Ana: büyük metrik değeri (3xl / bold) + birim (base / secondary)
+// Alt: yardımcı bilgi veya tag'ler
+// Aralar: tam genişlik divider (border.light, 1px)
+```
+
+### Tag / Pill Badge
+```tsx
+// Küçük, yuvarlak (radius.full), soft renkli arka planlar
+// Padding: 4px 10px, font: xs/medium
+// Renk: habit renklerinin %15 opaklıklı versiyonu
+// Ör: { backgroundColor: "#F5A62326", color: "#F5A623" }
+```
+
+### Bottom Tab Bar
+```tsx
+// Yükseklik: 80px (safe area dahil), beyaz bg
+// 4-5 tab ikonu, eşit aralık
+// Aktif: tab.active rengi + ikon altında küçük dot veya bold
+// Bildirim badge: kırmızı daire (tab.badge), sağ üst köşe
+// Border: üstte 1px border.light
+```
+
+### Segment Control (ör. "Insights / Stats")
+```tsx
+// Pill şeklinde container, beyaz/krem bg
+// Aktif segment: beyaz kart + hafif shadow
+// Pasif: şeffaf, text.secondary
+// Padding: 4px, radius: full
+// Animasyon: sliding indicator
+```
+
+---
+
+## 🔠 Icon Guidelines
+
+- Kullan: **SF Symbols** veya benzer çizgi kalınlığına sahip ikonlar (Lucide, Phosphor)
+- Boyut: genellikle 18-22px
+- Renk: `text.secondary` veya ilgili `habit.*` rengi
+- Dolu ikon yok — sadece outline / regular weight tercih edilir
+
+---
+
+## 📱 Layout Sistemi
+
+```
+┌─────────────────────────────┐
+│  Status Bar (44px)          │
+│  ─────────────────────────  │
+│  Header / Segment Ctrl      │  44px
+│  ─────────────────────────  │
+│                             │
+│  [Scroll Content]           │  padding: 20px yatay
+│   └ Cards                   │  gap: 16px
+│   └ List Rows               │
+│   └ Charts / Graphs         │
+│                             │
+│  ─────────────────────────  │
+│  Bottom Tab Bar (80px)      │
+└─────────────────────────────┘
+```
+
+---
+
+## ✅ Genel Kurallar
+
+1. **Soft & Organic:** Sert keskin kontrast yok. Her şey yumuşak, hava dolu, okunabilir.
+2. **Beyaz + Krem:** Arka plan asla saf beyaz değil — hafif sıcak tonlarda (#FAF7F4).
+3. **Renkli aksanlar sadece veride:** Habit renkleri sadece progress bar, dot ve tag'lerde; geniş yüzeyler renksiz kalsın.
+4. **Büyük sayılar öne çıkar:** Metrik değerler (tekrar sayısı, nabız, adım) büyük ve bold — kullanıcı tek bakışta anlasın.
+5. **Sınırlı gölge:** Sadece kartlarda, çok hafif (`0 2px 8px rgba(0,0,0,0.06)`).
+6. **Divider ile hiyerarşi:** Gövde bölümlerini ayırmak için arka plan renk farkı veya 1px çizgi yeterli.
+7. **Emoji ile duygu:** Mood/durum göstergelerinde emoji kullanımı desteklenir — bu uygulamanın tonuyla uyumlu.
+8. **iOS native hissi:** Border radius, spacing ve font boyutları Apple HIG'e yakın tutulur.

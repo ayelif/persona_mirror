@@ -1,0 +1,14 @@
+{
+  "name": "persona-mirror",
+  "private": true,
+  "workspaces": [
+    "apps/web",
+    "packages/shared-contracts"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace web",
+    "build:web": "npm run build --workspace web",
+    "lint:web": "npm run lint --workspace web",
+    "typecheck:contracts": "npm run build --workspace @persona-mirror/shared-contracts"
+  }
+}
