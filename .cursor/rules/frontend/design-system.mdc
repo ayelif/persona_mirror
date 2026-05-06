@@ -1,296 +1,443 @@
 ---
-description: Health & Habit Tracker App – Design System Rules
-globs: ["**/*.tsx", "**/*.jsx", "**/*.css", "**/*.ts"]
+description: Persona Mirror App – Flutter & Android Design System Rules
+globs: ["frontend/lib/**/*.dart"]
 alwaysApply: true
 ---
 
-# 🎨 Design System — Health & Habit Tracker
+# 🎨 Design System — Persona Mirror (Flutter / Android / Material 3)
 
-Bu rule, uygulamanın tüm ekranlarında tutarlı bir görsel dil sağlamak için kullanılır.
-Referans ekranlar: Progress/Stats ekranı, Mood/Insights ekranı, Health Data ekranı.
-
----
-
-## 🎨 Color Palette
-
-```ts
-// colors.ts
-export const colors = {
-  // Backgrounds
-  background: {
-    primary: "#FAF7F4",       // Ana arka plan (krem-beyaz)
-    secondary: "#F5EFE9",     // Kart/section arka planı (açık şeftali)
-    card: "#FFFFFF",          // Beyaz kart yüzeyi
-    overlay: "rgba(0,0,0,0.04)",
-  },
-
-  // Habit / Category Colors (Progress bar & dot indicators)
-  habit: {
-    orange:  "#F5A623",       // Walk / primary habit
-    coral:   "#E8635A",       // Read / warning tonu
-    purple:  "#B388FF",       // Mindfulness / purple
-    sky:     "#64B5F6",       // Writing / mavi
-    green:   "#81C784",       // Secondary habit / tamamlandı
-    teal:    "#4DB6AC",       // Ek renk
-  },
-
-  // Text
-  text: {
-    primary:   "#2C2C2C",     // Ana başlıklar
-    secondary: "#7A7A7A",     // Alt başlık, açıklama
-    tertiary:  "#ABABAB",     // Placeholder, disabled
-    inverse:   "#FFFFFF",
-  },
-
-  // Borders & Dividers
-  border: {
-    light: "#EFEFEF",
-    medium: "#E0D9D2",
-  },
-
-  // Status
-  status: {
-    success: "#81C784",
-    warning: "#F5A623",
-    error:   "#E8635A",
-    neutral: "#ABABAB",
-  },
-
-  // Bottom Tab Bar
-  tab: {
-    active:   "#2C2C2C",
-    inactive: "#ABABAB",
-    badge:    "#E8635A",
-  },
-} as const;
-```
+Bu rule, uygulamanın tüm Flutter ekranlarında tutarlı bir görsel dil sağlamak için kullanılır.
+Platform hedefi: **Android (Material You / M3) + iOS**
+Referans ekranlar: Login, Dashboard, Scenario, Simulation, Analysis.
 
 ---
 
-## 📐 Typography
+## 🎨 Renk Paleti (`lib/core/theme.dart`)
 
-```ts
-// typography.ts — SF Pro / System font stack kullan, iOS native hissi için
-export const typography = {
-  fontFamily: {
-    sans: "-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif",
-    display: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
-  },
+Tüm renkler `AppTheme` sınıfında `static const Color` olarak tanımlanmıştır.
+Kodda **asla ham hex string veya `Color(0xFF...)` literal kullanma** — her zaman `AppTheme.*` sabitlerini kullan.
 
-  fontSize: {
-    xs:   "11px",
-    sm:   "13px",
-    base: "15px",
-    md:   "17px",
-    lg:   "20px",
-    xl:   "28px",
-    "2xl":"34px",
-    "3xl":"48px",   // Büyük sayısal değerler (toplam rep, adım sayısı)
-  },
+```dart
+// Doğru ✅
+color: AppTheme.accentViolet
 
-  fontWeight: {
-    regular:   "400",
-    medium:    "500",
-    semibold:  "600",
-    bold:      "700",
-  },
-
-  lineHeight: {
-    tight:  "1.2",
-    normal: "1.4",
-    relaxed:"1.6",
-  },
-};
+// Yanlış ❌
+color: Color(0xFF7C4DFF)
+color: Colors.purple
 ```
 
-**Kullanım kuralları:**
-- Büyük metrik değerleri (9, 75 bpm, 21s): `3xl / bold`
-- Ekran başlıkları: `xl / bold`
-- Section başlıkları: `md / semibold`
-- Açıklama metinleri: `sm / regular`, renk `text.secondary`
-- Liste item etiketleri: `base / medium`
+### Arka Plan Renkleri
+| Sabit | Hex | Kullanım |
+|---|---|---|
+| `AppTheme.bgPrimary` | `#FAF7F4` | Scaffold arka planı |
+| `AppTheme.bgSecondary` | `#F5EFE9` | Section / liste arka planı |
+| `AppTheme.bgCard` | `#FFFFFF` | Beyaz kart yüzeyi |
+| `AppTheme.bgOverlay` | `rgba(0,0,0,0.04)` | Ripple / hover overlay |
+
+### Aksan Renkleri (Vibrant)
+| Sabit | Hex | Kullanım |
+|---|---|---|
+| `AppTheme.accentViolet` | `#7C4DFF` | Primary CTA, aktif nav, link |
+| `AppTheme.accentCoral` | `#FF6B6B` | Dikkat, hata tonu, silme |
+| `AppTheme.accentGold` | `#FFB300` | Başarı, rozet, sıcak vurgu |
+| `AppTheme.accentTeal` | `#00BFA5` | Analiz, tamamlanma |
+| `AppTheme.accentSky` | `#29B6F6` | Keşif, bilgi |
+| `AppTheme.accentPurple` | `#AB47BC` | Yaratıcılık, gradient tamamlayıcı |
+| `AppTheme.accentGreen` | `#66BB6A` | Başarı state |
+
+### Persona Tipi Renkleri
+| Sabit | Hex | Kişilik |
+|---|---|---|
+| `AppTheme.personaAnalyst` | `#5C6BC0` | Analist — indigo |
+| `AppTheme.personaDiplomat` | `#26A69A` | Diplomat — teal |
+| `AppTheme.personaSentinel` | `#EF5350` | Sentinel — coral kırmızı |
+| `AppTheme.personaExplorer` | `#FFB300` | Kaşif — altın sarısı |
+
+### Metin Renkleri
+| Sabit | Hex | Kullanım |
+|---|---|---|
+| `AppTheme.textPrimary` | `#2C2C2C` | Ana başlıklar, gövde metni |
+| `AppTheme.textSecondary` | `#7A7A7A` | Alt başlık, açıklama |
+| `AppTheme.textTertiary` | `#ABABAB` | Placeholder, disabled, timestamp |
+| `AppTheme.textInverse` | `#FFFFFF` | Koyu/renkli zemin üzeri metin |
+
+### Kenarlık & Durum Renkleri
+| Sabit | Hex | Kullanım |
+|---|---|---|
+| `AppTheme.borderLight` | `#EFEFEF` | Hafif ayırıcı, input border |
+| `AppTheme.borderMedium` | `#E0D9D2` | Belirgin ayırıcı, section border |
+| `AppTheme.statusSuccess` | `#66BB6A` | Başarı mesajı |
+| `AppTheme.statusWarning` | `#FFB300` | Uyarı |
+| `AppTheme.statusError` | `#FF6B6B` | Hata mesajı / kırmızı state |
+
+---
+
+## 📐 Tipografi (`lib/core/theme.dart`)
+
+Font: **Google Fonts — Inter** (gövde) + **Outfit** (başlıklar)
+Flutter `TextTheme` üzerinden kullan — asla `TextStyle` içinde fontFamily string yazma.
+
+```dart
+// Doğru ✅
+style: Theme.of(context).textTheme.titleLarge
+
+// Yanlış ❌
+style: TextStyle(fontFamily: 'Outfit', fontSize: 22)
+```
+
+### TextTheme Ölçekleri
+| TextTheme rolü | Boyut | Ağırlık | Kullanım |
+|---|---|---|---|
+| `displayLarge` | 34sp | Bold (700) | Büyük metrik değerler (skor, sayaç) |
+| `titleLarge` | 22sp | Bold (700) | Ekran / AppBar başlıkları |
+| `titleMedium` | 17sp | SemiBold (600) | Section başlıkları, kart başlıkları |
+| `bodyLarge` | 17sp | Medium (500) | Liste öğesi etiketleri |
+| `bodyMedium` | 15sp | Regular (400) | Açıklama, paragraf metni |
+| `bodySmall` | 13sp | Regular (400) | Yardımcı metin, metadata |
+| `labelSmall` | 11sp | Medium (500) | Badge, tag, zaman damgası |
+
+**Android/M3 notu:** Material 3'te `headline6` → `titleLarge`, `subtitle1` → `titleMedium` olarak değişti.
+Her zaman M3 rol adlarını kullan (`titleLarge`, `bodyMedium` vb.).
 
 ---
 
 ## 📏 Spacing & Layout
 
-```ts
-// spacing.ts
-export const spacing = {
-  0:   "0px",
-  1:   "4px",
-  2:   "8px",
-  3:   "12px",
-  4:   "16px",
-  5:   "20px",
-  6:   "24px",
-  8:   "32px",
-  10:  "40px",
-  12:  "48px",
-} as const;
+Flutter'da `SizedBox` ve `EdgeInsets` ile spacing yönet.
+Aşağıdaki sabit değerleri kullan — magic number yazma.
 
-export const layout = {
-  screenPaddingH: "20px",   // Yatay kenar boşluğu
-  screenPaddingV: "16px",   // Dikey kenar boşluğu
-  sectionGap:     "16px",   // Section'lar arası boşluk
-  cardPadding:    "16px",   // Kart iç boşluğu
-  listItemHeight: "52px",   // Liste öğesi yüksekliği
-  bottomTabHeight:"80px",   // Bottom navigation bar
-  topBarHeight:   "44px",
-};
+```dart
+// lib/core/spacing.dart
+class AppSpacing {
+  static const double xs  = 4.0;
+  static const double sm  = 8.0;
+  static const double md  = 12.0;
+  static const double lg  = 16.0;
+  static const double xl  = 20.0;
+  static const double xxl = 24.0;
+  static const double x3l = 32.0;
+  static const double x4l = 40.0;
+  static const double x5l = 48.0;
+}
+
+// Layout sabitleri
+class AppLayout {
+  static const double screenPaddingH  = 20.0; // Yatay kenar boşluğu
+  static const double screenPaddingV  = 16.0; // Dikey kenar boşluğu
+  static const double sectionGap      = 16.0; // Section'lar arası
+  static const double cardPadding     = 16.0; // Kart iç boşluğu
+  static const double listItemHeight  = 52.0; // Minimum dokunma hedefi (Material: 48dp)
+  static const double bottomNavHeight = 80.0; // BottomNavigationBar yüksekliği
+  static const double appBarHeight    = 56.0; // Material 3 AppBar yüksekliği
+}
 ```
+
+**Android uyumluluk notu:** Material Design minimum dokunma hedefi **48dp**. `listItemHeight = 52dp` bu standardı karşılar.
 
 ---
 
 ## 🔲 Border Radius
 
-```ts
-export const radius = {
-  sm:   "8px",
-  md:   "12px",
-  lg:   "16px",
-  xl:   "20px",
-  full: "9999px",  // Pill butonlar, badge'ler, tag'ler
-  card: "16px",    // Tüm kart bileşenleri
-};
+```dart
+// lib/core/radius.dart
+class AppRadius {
+  static const double sm   = 8.0;
+  static const double md   = 12.0;
+  static const double lg   = 16.0;  // Kart varsayılanı
+  static const double xl   = 20.0;
+  static const double xxl  = 28.0;  // Modal / Bottom sheet
+  static const double full = 999.0; // Pill buton / badge
+
+  // BorderRadius nesneleri
+  static BorderRadius get cardRadius => BorderRadius.circular(lg);
+  static BorderRadius get buttonRadius => BorderRadius.circular(md);
+  static BorderRadius get badgeRadius => BorderRadius.circular(full);
+  static BorderRadius get sheetRadius => const BorderRadius.vertical(
+    top: Radius.circular(xxl),
+  );
+}
 ```
+
+**Android/M3 notu:** Material 3 şekil sistemi (`ShapeTheme`) kullanılıyorsa `RoundedRectangleBorder` ile entegre et.
 
 ---
 
-## 🪟 Shadows & Elevation
+## 🪟 Gölge & Elevation
 
-```ts
-export const shadows = {
-  none: "none",
-  sm:   "0 1px 3px rgba(0,0,0,0.06)",
-  md:   "0 2px 8px rgba(0,0,0,0.08)",
-  lg:   "0 4px 16px rgba(0,0,0,0.10)",
-  card: "0 2px 8px rgba(0,0,0,0.06)",  // Kart varsayılanı
-};
+Flutter'da `BoxShadow` ve `Material elevation` ayrıdır — birini seç, ikisini birden kullanma.
+
+```dart
+// AppTheme içinde static getter olarak tanımlı:
+
+// Kartlar için (elevation yerine)
+AppTheme.shadowCard  → BoxShadow(color: 0x0F000000, blurRadius: 8, offset: Offset(0,2))
+
+// Büyük yüzeyler için
+AppTheme.shadowLg    → BoxShadow(color: 0x1A000000, blurRadius: 16, offset: Offset(0,4))
+
+// Küçük öğeler
+AppTheme.shadowSm    → BoxShadow(color: 0x0F000000, blurRadius: 3, offset: Offset(0,1))
+
+// CTA buton glow efektleri
+AppTheme.glowViolet  → BoxShadow(color: 0x407C4DFF, blurRadius: 16, offset: Offset(0,6))
+AppTheme.glowCoral   → BoxShadow(color: 0x40FF6B6B, blurRadius: 16, offset: Offset(0,6))
 ```
 
-**Kural:** Yüksek kontrast shadow kullanma. Uygulamanın tonu soft/organic — gölgeler hafif ve diffuse olmalı.
+**Android/M3 elevation notu:**
+- `Card`, `ElevatedButton`, `NavigationBar` gibi M3 widget'ları kendi elevation'larını yönetir.
+- Özel `Container` kullandığında `boxShadow` ile gölge ekle, `elevation` parametresini yalnızca Material widget'larında kullan.
+- Sert yüksek elevation (8+) kullanma — ton soft & organik kalmalı.
 
 ---
 
-## 🧩 Component Patterns
+## 🧩 Widget & Bileşen Kalıpları
 
-### Card
-```tsx
-// Her section bir kart içinde, beyaz bg, hafif gölge, 16px radius
-<div style={{
-  backgroundColor: colors.background.card,
-  borderRadius: radius.card,
-  padding: layout.cardPadding,
-  boxShadow: shadows.card,
-  marginBottom: layout.sectionGap,
-}}>
+### AppCard (Beyaz kart)
+```dart
+// lib/core/glass_container.dart içinde AppCard widget'ı mevcut
+AppCard(
+  padding: const EdgeInsets.all(AppLayout.cardPadding),
+  margin: const EdgeInsets.only(bottom: AppLayout.sectionGap),
+  child: ...,
+)
+
+// Manuel Container gerektiğinde:
+Container(
+  decoration: BoxDecoration(
+    color: AppTheme.bgCard,
+    borderRadius: AppRadius.cardRadius,   // 16dp
+    boxShadow: AppTheme.shadowCard,
+  ),
+  padding: const EdgeInsets.all(AppLayout.cardPadding),
+)
 ```
 
-### Stat Row (ör. "Total perfect days — 3")
-```tsx
-// Sol: ikon + başlık + açıklama | Sağ: değer (bold)
-// Aralarında hafif divider (border.light)
-// Yükseklik: min 60px, padding: 12px 16px
+### Primary CTA Butonu
+```dart
+// Gradient + glow, minimum 52dp yükseklik (Android touch target)
+Container(
+  width: double.infinity,
+  height: AppLayout.listItemHeight,  // 52dp
+  decoration: BoxDecoration(
+    gradient: const LinearGradient(
+      colors: [AppTheme.accentViolet, AppTheme.accentPurple],
+    ),
+    borderRadius: AppRadius.buttonRadius,  // 12dp
+    boxShadow: AppTheme.glowViolet,
+  ),
+  child: Center(
+    child: Text(
+      'Devam Et',
+      style: TextStyle(
+        color: AppTheme.textInverse,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  ),
+)
 ```
 
-### Habit List Item
-```tsx
-// Sol: colored dot (8px circle) + etiket
-// Sağ: sayı değeri (semibold)
-// Satır yüksekliği: 44-52px
-// Arka plan: şeffaf, hover'da background.overlay
+### Outline / Secondary Butonu
+```dart
+// Beyaz zemin, borderMedium kenarlık, no shadow
+Container(
+  width: double.infinity,
+  height: AppLayout.listItemHeight,
+  decoration: BoxDecoration(
+    color: AppTheme.bgCard,
+    borderRadius: AppRadius.buttonRadius,
+    border: Border.all(color: AppTheme.borderMedium),
+    boxShadow: AppTheme.shadowSm,
+  ),
+)
 ```
 
-### Progress Bar (Stacked / Segmented)
-```tsx
-// Tam genişlik, yükseklik: 48px, radius: full
-// Her segment habit rengiyle dolduruluyor
-// İçinde beyaz sayı etiketi (sm / semibold)
-// Aralarında 2px beyaz gap
-```
-
-### Mood Graph
-```tsx
-// Hafif pembe/şeftali bg kart içinde
-// X ekseni: tarihler (xs / regular / text.tertiary)
-// Y ekseni: emoji'ler, hizalanmış grid
-// Alt: tamamlanma durumu semboller (●, ○, ×)
-```
-
-### Health Data Row
-```tsx
-// Üst: kategori ikonu (16px) + başlık + zaman damgası (text.tertiary)
-// Ana: büyük metrik değeri (3xl / bold) + birim (base / secondary)
-// Alt: yardımcı bilgi veya tag'ler
-// Aralar: tam genişlik divider (border.light, 1px)
+### Input Field (TextFormField)
+```dart
+// Tema üzerinden InputDecorationTheme otomatik uygulanır.
+// Özel ihtiyaçlar için:
+TextFormField(
+  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15),
+  decoration: InputDecoration(
+    hintText: 'Açıklama...',
+    prefixIcon: const Icon(Icons.search_outlined, size: 20),
+    // Tema otomatik: filled=true, fillColor=bgCard, border, focusedBorder
+  ),
+  textCapitalization: TextCapitalization.sentences, // Flutter kuralı
+  textInputAction: TextInputAction.next,            // Flutter kuralı
+  keyboardType: TextInputType.text,
+)
 ```
 
 ### Tag / Pill Badge
-```tsx
-// Küçük, yuvarlak (radius.full), soft renkli arka planlar
-// Padding: 4px 10px, font: xs/medium
-// Renk: habit renklerinin %15 opaklıklı versiyonu
-// Ör: { backgroundColor: "#F5A62326", color: "#F5A623" }
+```dart
+// Soft renkli, yuvarlak, 13sp metin
+Container(
+  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+  decoration: BoxDecoration(
+    color: AppTheme.accentViolet.withOpacity(0.12),
+    borderRadius: AppRadius.badgeRadius,  // pill
+    border: Border.all(color: AppTheme.accentViolet.withOpacity(0.25)),
+  ),
+  child: Text(
+    'Analist',
+    style: const TextStyle(
+      color: AppTheme.accentViolet,
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+    ),
+  ),
+)
 ```
 
-### Bottom Tab Bar
-```tsx
-// Yükseklik: 80px (safe area dahil), beyaz bg
-// 4-5 tab ikonu, eşit aralık
-// Aktif: tab.active rengi + ikon altında küçük dot veya bold
-// Bildirim badge: kırmızı daire (tab.badge), sağ üst köşe
-// Border: üstte 1px border.light
+### Section Header
+```dart
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    Text(
+      'Persona Sonuçları',
+      style: Theme.of(context).textTheme.titleMedium,
+    ),
+    TextButton(
+      onPressed: () {},
+      child: const Text(
+        'Tümünü gör',
+        style: TextStyle(
+          color: AppTheme.accentViolet,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+  ],
+)
 ```
 
-### Segment Control (ör. "Insights / Stats")
-```tsx
-// Pill şeklinde container, beyaz/krem bg
-// Aktif segment: beyaz kart + hafif shadow
-// Pasif: şeffaf, text.secondary
-// Padding: 4px, radius: full
-// Animasyon: sliding indicator
+### BottomNavigationBar / NavigationBar (M3)
+```dart
+// Material 3 NavigationBar kullan (NavigationBar widget'ı)
+NavigationBar(
+  backgroundColor: AppTheme.bgCard,
+  indicatorColor: AppTheme.accentViolet.withOpacity(0.12),
+  labelTextStyle: MaterialStateProperty.resolveWith((states) {
+    if (states.contains(MaterialState.selected)) {
+      return const TextStyle(color: AppTheme.accentViolet, fontSize: 11, fontWeight: FontWeight.w600);
+    }
+    return const TextStyle(color: AppTheme.textTertiary, fontSize: 11);
+  }),
+  destinations: const [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home_rounded, color: AppTheme.accentViolet),
+      label: 'Ana Sayfa',
+    ),
+    // ...
+  ],
+)
+```
+
+### Snackbar / Hata Bildirimi
+```dart
+// flutter-rule.mdc'ye göre: SnackBar yerine SelectableText.rich kullan
+// Ancak sistem bildirimleri için ScaffoldMessenger gerekiyorsa:
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(
+    content: const Text('İşlem başarılı'),
+    backgroundColor: AppTheme.statusSuccess,
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: AppRadius.buttonRadius),
+  ),
+);
 ```
 
 ---
 
-## 🔠 Icon Guidelines
+## 🔠 İkon Kuralları
 
-- Kullan: **SF Symbols** veya benzer çizgi kalınlığına sahip ikonlar (Lucide, Phosphor)
-- Boyut: genellikle 18-22px
-- Renk: `text.secondary` veya ilgili `habit.*` rengi
-- Dolu ikon yok — sadece outline / regular weight tercih edilir
+- **Paket:** `flutter/material.dart` içindeki Material Symbols (outlined varyant)
+- **Boyutlar:**
 
----
+| Bağlam | Boyut |
+|---|---|
+| Form prefix/suffix | 20dp |
+| Liste öğesi | 22dp |
+| AppBar / Navigation | 24dp |
+| Featured / hero ikon | 28–32dp |
 
-## 📱 Layout Sistemi
-
-```
-┌─────────────────────────────┐
-│  Status Bar (44px)          │
-│  ─────────────────────────  │
-│  Header / Segment Ctrl      │  44px
-│  ─────────────────────────  │
-│                             │
-│  [Scroll Content]           │  padding: 20px yatay
-│   └ Cards                   │  gap: 16px
-│   └ List Rows               │
-│   └ Charts / Graphs         │
-│                             │
-│  ─────────────────────────  │
-│  Bottom Tab Bar (80px)      │
-└─────────────────────────────┘
-```
+- **Renk:** `AppTheme.textSecondary` (pasif), `AppTheme.accentViolet` (aktif/selected)
+- **Sadece outline weight** — `Icons.home_outlined` ✅, `Icons.home` ❌
+- Navigation selected state için `_rounded` varyant kullanılabilir: `Icons.home_rounded`
 
 ---
 
-## ✅ Genel Kurallar
+## 📱 Ekran Düzeni (Flutter Widget Ağacı)
 
-1. **Soft & Organic:** Sert keskin kontrast yok. Her şey yumuşak, hava dolu, okunabilir.
-2. **Beyaz + Krem:** Arka plan asla saf beyaz değil — hafif sıcak tonlarda (#FAF7F4).
-3. **Renkli aksanlar sadece veride:** Habit renkleri sadece progress bar, dot ve tag'lerde; geniş yüzeyler renksiz kalsın.
-4. **Büyük sayılar öne çıkar:** Metrik değerler (tekrar sayısı, nabız, adım) büyük ve bold — kullanıcı tek bakışta anlasın.
-5. **Sınırlı gölge:** Sadece kartlarda, çok hafif (`0 2px 8px rgba(0,0,0,0.06)`).
-6. **Divider ile hiyerarşi:** Gövde bölümlerini ayırmak için arka plan renk farkı veya 1px çizgi yeterli.
-7. **Emoji ile duygu:** Mood/durum göstergelerinde emoji kullanımı desteklenir — bu uygulamanın tonuyla uyumlu.
-8. **iOS native hissi:** Border radius, spacing ve font boyutları Apple HIG'e yakın tutulur.
+```
+Scaffold(
+  backgroundColor: AppTheme.bgPrimary,  // Krem-beyaz, asla Colors.white
+  appBar: AppBar(...),                  // Transparent, elevation 0
+  body: SafeArea(
+    child: SingleChildScrollView(       // veya CustomScrollView
+      padding: EdgeInsets.symmetric(
+        horizontal: AppLayout.screenPaddingH,  // 20dp
+        vertical: AppLayout.screenPaddingV,    // 16dp
+      ),
+      child: Column(
+        children: [
+          AppCard(child: ...),          // Section 1 — 16dp gap altında
+          AppCard(child: ...),          // Section 2
+          SizedBox(height: AppSpacing.xxl),
+        ],
+      ),
+    ),
+  ),
+  bottomNavigationBar: NavigationBar(...),
+)
+```
+
+**Android sistem uyumluluk notları:**
+- `SafeArea` her zaman kullan — Android navigation bar ve notch koruması.
+- `MediaQuery.of(context).padding` ile sistem çubuklarını hesaba kat.
+- `resizeToAvoidBottomInset: true` (varsayılan) — klavye açıldığında ekran kaymasını önler.
+- Android back button için `WillPopScope` veya GoRouter'da `canPop` ile yönet.
+
+---
+
+## 🎬 Animasyon Kuralları
+
+```dart
+// Sadece flutter_animate paketi kullan
+import 'package:flutter_animate/flutter_animate.dart';
+
+// İzin verilen animasyonlar:
+widget
+  .animate()
+  .fadeIn(duration: 400.ms)           // Görünürlük
+  .slideY(begin: 0.1, curve: Curves.easeOut)  // Hafif yukarı kayma
+  .scale(begin: const Offset(0.96, 0.96))     // Küçükten büyüğe
+
+// Kurallar:
+// - Süre: 300–600ms arası. 600ms'yi geçme.
+// - Gecikme (delay): liste öğeleri için 50–100ms arası stagger
+// - Easing: Curves.easeOut (genel), Curves.elasticOut (logo/ikon)
+// - Karmaşık physics animasyonları için AnimationController kullan
+```
+
+---
+
+## ✅ Genel Flutter / Android Kuralları
+
+1. **Renk:** Her zaman `AppTheme.*` sabitleri — ham `Color(0xFF...)` literal yok.
+2. **Tipografi:** Her zaman `Theme.of(context).textTheme.*` — satır içi `fontFamily` yok.
+3. **Spacing:** `AppSpacing.*` veya `AppLayout.*` sabitleri — magic number yok.
+4. **Const:** Mümkün olan her widget'a `const` ekle — rebuild optimizasyonu.
+5. **Widget parçalama:** `_buildXxx()` metot yerine private `class _XxxWidget extends StatelessWidget` kullan (flutter-rule.mdc).
+6. **Dokunma hedefi:** Minimum **48dp** (Android HIG) — küçük butonlara `SizedBox` wrapper ekle.
+7. **SafeArea:** Her `Scaffold` body'sini `SafeArea` ile sar.
+8. **Scaffold arka planı:** `AppTheme.bgPrimary` — asla `Colors.white` veya `Colors.black`.
+9. **AppBar:** `backgroundColor: Colors.transparent`, `elevation: 0` — tema otomatik uygular.
+10. **Animasyon:** Yalnızca `flutter_animate` — `Duration` 300–600ms arası.
+11. **Persona renkleri:** Her kişilik tipi kendi sabit rengiyle eşleşir — karıştırma.
+12. **Gölge:** `BoxShadow` — sert elevation yok. Kartlarda `shadowCard`, CTA butonlarda `glowViolet`.

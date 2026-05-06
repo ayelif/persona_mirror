@@ -1,0 +1,7 @@
+# Bu dosyay key.properties olarak kopyalayip gercek degerlerinizi doldurun.
+# key.properties dosyasini .gitignore'a ekleyin ve ASLA repoya push etmeyin!
+
+storePassword=BURAYA_KEYSTORE_PAROLANIZI_YAZIN
+keyPassword=BURAYA_ANAHTAR_PAROLANIZI_YAZIN
+keyAlias=persona_mirror_key
+storeFile=../keystore/persona_mirror.jks

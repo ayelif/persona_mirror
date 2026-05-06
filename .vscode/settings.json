@@ -1,0 +1,7 @@
+{
+  "deno.enable": false,
+  "deno.enablePaths": [
+    "apps/backend/src/functions"
+  ],
+  "deno.unstable": true
+}
