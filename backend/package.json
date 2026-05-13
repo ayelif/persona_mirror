@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "echo 'Run supabase functions serve locally'"
+    "dev": "npx supabase functions serve --env-file .env.local",
+    "deploy": "npx supabase functions deploy"
   }
 }

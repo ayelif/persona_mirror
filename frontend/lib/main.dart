@@ -1,70 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:go_router/go_router.dart';
-import 'package:persona_mirror/core/theme.dart';
-import 'package:persona_mirror/features/splash/splash_screen.dart';
-import 'package:persona_mirror/features/auth/login_screen.dart';
-import 'package:persona_mirror/features/dashboard/dashboard_screen.dart';
-import 'package:persona_mirror/features/scenario/create_scenario_screen.dart';
-import 'package:persona_mirror/features/simulation/simulation_screen.dart';
-import 'package:persona_mirror/features/analysis/analysis_screen.dart';
-import 'package:persona_mirror/features/settings/settings_screen.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:persona_mirror/core/constants/app_constants.dart';
+import 'package:persona_mirror/core/theme/app_theme.dart';
+import 'package:persona_mirror/core/router/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
   try {
     await dotenv.load(fileName: '.env');
-  } catch (_) {
-    // Falls back gracefully
+  } catch (e) {
+    debugPrint('Error loading .env file: $e');
   }
-  runApp(const PersonaMirrorApp());
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: AppConstants.supabaseUrl,
+    anonKey: AppConstants.supabaseAnonKey,
+  );
+
+  runApp(
+    const ProviderScope(
+      child: PersonaMirrorApp(),
+    ),
+  );
 }
 
-final _router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const SplashScreen(),
-    ),
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: '/dashboard',
-      builder: (context, state) => const DashboardScreen(),
-    ),
-    GoRoute(
-      path: '/create-scenario',
-      builder: (context, state) => const CreateScenarioScreen(),
-    ),
-    GoRoute(
-      path: '/simulation',
-      builder: (context, state) => const SimulationScreen(),
-    ),
-    GoRoute(
-      path: '/analysis',
-      builder: (context, state) => const AnalysisScreen(),
-    ),
-    GoRoute(
-      path: '/settings',
-      builder: (context, state) => const SettingsScreen(),
-    ),
-  ],
-);
-
-class PersonaMirrorApp extends StatelessWidget {
+class PersonaMirrorApp extends ConsumerWidget {
   const PersonaMirrorApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouter);
+
     return MaterialApp.router(
-      title: 'Persona Mirror',
-      theme: AppTheme.lightTheme,
-      routerConfig: _router,
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      routerConfig: router,
     );
   }
 }

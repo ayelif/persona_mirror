@@ -10,10 +10,17 @@
 
 ## Şu Ana Kadar Tamamlanan Adımlar (Steps Done)
 1. PRD dökümanı analiz edildi ve projenin ana klasörüne detaylı bir teknik geliştirme planı (`gelistirme_plani.md`) eklendi.
-2. İzlenecek adımlar için görev kontrol listesi (`task.md`) hazırlandı.
+2. İzlenecek adımlar için görev kontrol listess (`task.md`) hazırlandı.
 3. Çalışma alanındaki mevcut Flutter projesi (`frontend`) belirlendi.
 4. Gerekli ana bağımlılıklar (`supabase_flutter`, `google_sign_in`, `flutter_riverpod`, `go_router`) terminal üzerinden `pubspec.yaml` dosyasına başarıyla eklendi.
+5. **Backend Altyapısı:** `supabase/functions` yapısı kuruldu, CORS, Supabase Client ve JWT doğrulama yardımcıları oluşturuldu.
+6. **Kullanıcı Servisi:** Kullanıcı CRUD fonksiyonu (`users`) ve Google Auth doğrulama fonksiyonu (`auth`) tamamlandı.
+7. **Senaryo Yönetimi:** Senaryo oluşturma, listeleme ve hazır şablonları getirme (`scenarios`) fonksiyonu tamamlandı.
+8. **Simülasyon & AI:** Oturum başlatma, mesajlaşma ve AI (Groq/Llama) entegrasyonu (`sessions`) fonksiyonu tamamlandı.
+9. **Analiz:** Oturum sonlandığında otomatik analiz tetikleme ve rapor oluşturma (`analyses`) fonksiyonu tamamlandı.
+10. **Bulut Entegrasyonu:** Yerel proje Supabase Cloud'a bağlandı; veritabanı şeması ve tüm fonksiyonlar canlıya alınmaya hazır.
 
 ## Üzerinde Çalışılan / Bekleyen Durumlar (Current Status & Known Issues)
-- **Üzerinde Çalıştığımız Uyarı/Sorun (Current Issue/Failure to fix):** Projeye yeni eklenen `google_sign_in` ve `supabase_flutter` paketleri native platform (Android/iOS) katmanında kod değişiklikleri gerektirir. Bu nedenle, sisteme halihazırda bağlı olup arka planda çalışan mevcut `flutter run` oturumu (Hot Reload) çökecek veya paketleri bulamayacaktır. Bu durumu çözmek için geliştiricinin terminaldeki çalışan uygulamayı durdurup **tam bir baştan derleme (rebuild)** yapması beklenmektedir.
-- **Sıradaki Adım (Next Up):** Uygulama yeniden derlenmeye hazır hale geldikten sonra `lib/core` ve `lib/features` gibi modüler klasör yapılarının oluşturulup, uygulamanın ilk açılış ekranının (Splash Screen) ve giriş ekranının (Login Screen) kodlanması.
+- **Sıradaki Adım (Next Up):** Frontend (Flutter) tarafında bu backend servislerinin entegrasyonu, Splash Screen ve modern Dashboard arayüzlerinin kodlanması.
+- **Bilinmesi Gereken:** Backend artık Groq API üzerinden Llama 3.3-70b modelini kullanarak yüksek performanslı simülasyon ve analiz sunuyor.
+

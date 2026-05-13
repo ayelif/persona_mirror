@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:persona_mirror/core/theme.dart';
-import 'package:persona_mirror/core/spacing.dart';
+import 'package:persona_mirror/core/theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
 import 'package:persona_mirror/features/dashboard/views/home_view.dart';
 import 'package:persona_mirror/features/dashboard/views/discovery_view.dart';
 import 'package:persona_mirror/features/dashboard/views/reports_view.dart';
@@ -14,7 +14,7 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  int _selectedIndex = 1; // 'Home' is selected by default
+  int _selectedIndex = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -25,81 +25,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      body: SafeArea(
-        child: IndexedStack(
-          index: _selectedIndex,
-          children: views.map((v) => SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppLayout.screenPaddingH,
-              vertical: AppLayout.screenPaddingV,
-            ),
-            child: v,
-          )).toList(),
-        ),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('Persona Mirror', style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        backgroundColor: AppTheme.backgroundColor,
+        elevation: 0,
       ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      height: 85,
-      padding: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 20,
-            offset: const Offset(0, -10),
-          ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: views.map((view) => SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: view,
+        )).toList(),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        backgroundColor: Colors.white,
+        selectedItemColor: AppTheme.primaryColor,
+        unselectedItemColor: AppTheme.mutedTextColor,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.explore_outlined), activeIcon: Icon(Icons.explore_rounded), label: 'Keşfet'),
+          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Ana Sayfa'),
+          BottomNavigationBarItem(icon: Icon(Icons.analytics_outlined), activeIcon: Icon(Icons.analytics_rounded), label: 'Analizler'),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.psychology_outlined, 'Prova'),
-          _buildNavItem(1, Icons.home_rounded, 'Home'),
-          _buildNavItem(2, Icons.bar_chart_rounded, 'Raporlar'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: 300.ms,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.accentViolet.withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppTheme.accentViolet : AppTheme.textTertiary,
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppTheme.accentViolet : AppTheme.textTertiary,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => context.push('/create-scenario'),
+        backgroundColor: AppTheme.primaryColor,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Yeni Prova', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
