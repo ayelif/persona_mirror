@@ -12,13 +12,32 @@ Deno.serve(async (req) => {
   const userId = url.searchParams.get('id');
 
   try {
-    // CREATE (Registration)
+    // CREATE or SYNC
     if (method === 'POST') {
-      const { email, google_sub_id } = await req.json();
+      const { id, email, google_sub_id } = await req.json();
       
+      // Önce email ile ara
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (existingUser) {
+        // Eğer varsa, mevcut kullanıcıyı dön (ID çakışmasını önle)
+        return new Response(JSON.stringify(existingUser), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Yoksa yeni oluştur
+      const insertData = { email, google_sub_id };
+      if (id) insertData.id = id;
+
       const { data, error } = await supabase
         .from('users')
-        .insert([{ email, google_sub_id }])
+        .insert([insertData])
         .select()
         .single();
 

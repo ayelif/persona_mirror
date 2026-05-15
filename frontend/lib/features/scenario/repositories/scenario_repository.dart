@@ -79,14 +79,53 @@ class ScenarioRepository {
     required String category,
   }) async {
     final user = _client.auth.currentUser;
+    if (user == null) throw Exception('Oturum açmış kullanıcı bulunamadı.');
+
+    String? effectiveUserId;
+
+    // ADIM 1: Veritabanından e-posta ile ID'yi çekmeyi dene (RLS kapalıysa çalışır)
+    try {
+      final res = await _client.from('users').select('id').eq('email', user.email!).maybeSingle();
+      if (res != null) {
+        effectiveUserId = res['id'].toString();
+      }
+    } catch (_) {}
+
+    // ADIM 2: Eğer hala yoksa, backend fonksiyonunu "getirici" olarak kullan
+    if (effectiveUserId == null) {
+      try {
+        // Backend'e "ben buradayım" de ve güncel ID'yi al
+        final syncRes = await _client.functions.invoke('users', body: {
+          'email': user.email,
+          'id': user.id, // Bunu göndersek de backend eski kodla görmezden gelebilir
+        });
+        
+        if (syncRes.data != null && syncRes.data['id'] != null) {
+          effectiveUserId = syncRes.data['id'].toString();
+        }
+      } catch (e) {
+        // Eğer 400 (Duplicate) hatası alıyorsak, bu demektir ki kullanıcı var.
+        // Bazı durumlarda hata mesajının içinden ID'yi çekebiliriz ama bu zor.
+      }
+    }
+
+    // ADIM 3: Son çare: Eğer hala ID bulunamadıysa ve senaryo oluşturma hata veriyorsa, 
+    // veritabanındaki "gerçek" ID'ye ulaşmanın başka yolu yoktur. 
+    effectiveUserId ??= user.id;
     
+    print('Kullanılacak Senaryo UserID: $effectiveUserId');
+
     final response = await _client.from('scenarios').insert({
       'title': title,
       'context': context,
       'category': category,
-      'user_id': user?.id,
+      'user_id': effectiveUserId,
     }).select().single();
 
     return Scenario.fromJson(response);
   }
 }
+
+
+
+
