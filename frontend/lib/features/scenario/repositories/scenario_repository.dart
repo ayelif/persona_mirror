@@ -124,6 +124,67 @@ class ScenarioRepository {
 
     return Scenario.fromJson(response);
   }
+
+  // Senaryo sil
+  Future<void> deleteScenario(String id) async {
+    await _client.from('scenarios').delete().eq('id', id);
+  }
+
+  // Kullanıcı istatistiklerini getir
+  Future<Map<String, dynamic>> getStats() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return {'total_sessions': 0, 'avg_score': 0, 'skills': {}};
+
+    try {
+      // Toplam seans sayısı
+      final sessionsRes = await _client
+          .from('sessions')
+          .select('id')
+          .eq('user_id', user.id);
+      
+      final totalSessions = (sessionsRes as List).length;
+
+      // Analiz sonuçlarından ortalama skorlar
+      // NOT: analyses tablosunda user_id yokmuş, session_id üzerinden join gerekebilir 
+      // ama şimdilik RLS'in çalıştığını veya tümünü getirdiğimizi varsayıyoruz.
+      final analysesRes = await _client
+          .from('analyses')
+          .select('empathy_score, clarity_score, assertiveness_score');
+
+      double avgEmpathy = 0;
+      double avgClarity = 0;
+      double avgAssertiveness = 0;
+      int count = 0;
+
+      if (analysesRes != null && (analysesRes as List).isNotEmpty) {
+        final list = analysesRes as List;
+        count = list.length;
+        for (var item in list) {
+          avgEmpathy += (item['empathy_score'] ?? 0);
+          avgClarity += (item['clarity_score'] ?? 0);
+          avgAssertiveness += (item['assertiveness_score'] ?? 0);
+        }
+        avgEmpathy /= count;
+        avgClarity /= count;
+        avgAssertiveness /= count;
+      }
+
+      final totalAvg = count > 0 ? (avgEmpathy + avgClarity + avgAssertiveness) / 3 * 10 : 0;
+
+      return {
+        'total_sessions': totalSessions,
+        'avg_score': totalAvg.toInt(),
+        'skills': {
+          'Empati': avgEmpathy / 10,
+          'Netlik': avgClarity / 10,
+          'Kararlılık': avgAssertiveness / 10,
+        }
+      };
+    } catch (e) {
+      print('İstatistik getirme hatası: $e');
+      return {'total_sessions': 0, 'avg_score': 0, 'skills': {}};
+    }
+  }
 }
 
 

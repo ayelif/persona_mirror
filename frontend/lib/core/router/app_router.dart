@@ -8,6 +8,7 @@ import 'package:persona_mirror/features/settings/settings_screen.dart';
 import 'package:persona_mirror/features/simulation/simulation_screen.dart';
 import 'package:persona_mirror/features/analysis/analysis_screen.dart';
 import 'package:persona_mirror/features/scenario/create_scenario_screen.dart';
+import 'package:persona_mirror/features/settings/edit_profile_screen.dart';
 import 'package:persona_mirror/core/models/scenario.dart';
 
 // Router provider
@@ -32,6 +33,10 @@ final appRouter = Provider<GoRouter>((ref) {
         builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfileScreen(),
+      ),
+      GoRoute(
         path: '/create-scenario',
         builder: (context, state) {
           final template = state.extra as Scenario?;
@@ -41,6 +46,9 @@ final appRouter = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/simulation',
         builder: (context, state) {
+          if (state.extra is! Scenario) {
+            return const Scaffold(body: Center(child: Text('Senaryo bulunamadı.')));
+          }
           final scenario = state.extra as Scenario;
           return SimulationScreen(scenario: scenario);
         },
@@ -48,7 +56,8 @@ final appRouter = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/analysis',
         builder: (context, state) {
-          final sessionId = state.extra as String;
+          final extra = state.extra;
+          final sessionId = extra is String ? extra : '';
           return AnalysisScreen(sessionId: sessionId);
         },
       ),

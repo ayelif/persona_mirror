@@ -20,3 +20,8 @@ final templatesProvider = FutureProvider<List<Scenario>>((ref) async {
   return repository.getTemplates();
 });
 
+// Kullanıcı istatistikleri
+final statsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final repository = ref.read(scenarioRepositoryProvider);
+  return repository.getStats();
+});

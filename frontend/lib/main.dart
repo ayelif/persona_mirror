@@ -3,7 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:persona_mirror/core/constants/app_constants.dart';
-import 'package:persona_mirror/core/theme/app_theme.dart';
+import 'package:persona_mirror/core/theme.dart';
 import 'package:persona_mirror/core/router/app_router.dart';
 
 Future<void> main() async {
@@ -44,3 +44,4 @@ class PersonaMirrorApp extends ConsumerWidget {
     );
   }
 }
+
