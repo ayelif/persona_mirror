@@ -26,11 +26,19 @@ Persona Mirror, sosyal ve profesyonel hayatınızdaki zorlu konuşmaları simül
 
 ---
 
-## 🏗 Proje Yapısı
+## 🏗 Proje Yapısı & Zorunlu Dokümantasyon
 
-- `frontend/`: Flutter mobil uygulaması kaynak kodları.
-- `backend/`: Supabase Edge Functions (Deno/TypeScript).
-- `docs/`: Dokümantasyon ve ekran görüntüleri.
+Proje, gereksinim duyulan modüler yapıyı ve geliştirme referans dökümanlarını eksiksiz şekilde barındırmaktadır:
+
+- **`/frontend`**: Flutter (Dart) mobil uygulaması arayüz ve istemci kodları.
+- **`/backend`**: Supabase Edge Functions (Deno & TypeScript) API kodları.
+- **`/supabase`**: PostgreSQL veritabanı şeması, RLS politikaları ve migrations klasörü.
+- **`/prodocs`**: Yapay zeka ajanları ve proje kabul jürisi için hazırlanan **Zorunlu Geliştirme Referans Dosyaları**:
+  - [📄 PRD.md](./prodocs/PRD.md) — Çözülen problem, hedef kullanıcı ve özellik yol haritası.
+  - [📄 tech-stack.md](./prodocs/tech-stack.md) — Teknoloji seçimleri, API mimarisi ve AI entegrasyonu.
+  - [📄 Plan.md](./prodocs/Plan.md) — PRD'den türetilen, kullanıcı hikayelerine bölünmüş teknik adımlar.
+  - [📄 DesignSystem.md](./prodocs/DesignSystem.md) — Soft & Professional renk paleti, tipografi ve component kuralları.
+  - [📄 Progress.md](./prodocs/Progress.md) — Geliştirme günlüğü, alınan kararlar ve çözülen hatalar listesi.
 
 ---
 

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:persona_mirror/core/theme.dart';
 import 'package:persona_mirror/core/glass_container.dart';
+import 'package:persona_mirror/core/di/scenario_provider.dart';
+import 'package:persona_mirror/core/models/scenario.dart';
 
-class DiscoveryView extends StatelessWidget {
+class DiscoveryView extends ConsumerWidget {
   const DiscoveryView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final templatesAsync = ref.watch(templatesProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -36,31 +42,31 @@ class DiscoveryView extends StatelessWidget {
         ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.95, 0.95)),
         
         const SizedBox(height: 32),
-        _buildDiscoveryCard(
-          context,
-          'Maaş Zammı İstemek',
-          'İş Dünyası',
-          Icons.payments_rounded,
-          AppTheme.accentSky,
-          0,
-        ),
-        const SizedBox(height: 16),
-        _buildDiscoveryCard(
-          context,
-          'Zor Bir Ayrılık Konuşması',
-          'İlişkiler',
-          Icons.favorite_rounded,
-          AppTheme.accentCoral,
-          1,
-        ),
-        const SizedBox(height: 16),
-        _buildDiscoveryCard(
-          context,
-          'Yeni Bir Takıma Liderlik',
-          'Yönetim',
-          Icons.leaderboard_rounded,
-          AppTheme.accentTeal,
-          2,
+
+        templatesAsync.when(
+          data: (templates) => ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: templates.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 16),
+            itemBuilder: (context, index) {
+              final template = templates[index];
+              return _buildDiscoveryCard(
+                context,
+                template,
+                index,
+              );
+            },
+          ),
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(40.0),
+              child: CircularProgressIndicator(color: AppTheme.accentViolet),
+            ),
+          ),
+          error: (err, stack) => Center(
+            child: Text('Hata: $err', style: const TextStyle(color: Colors.red)),
+          ),
         ),
       ],
     );
@@ -68,48 +74,79 @@ class DiscoveryView extends StatelessWidget {
 
   Widget _buildDiscoveryCard(
     BuildContext context,
-    String title,
-    String category,
-    IconData icon,
-    Color accentColor,
+    Scenario template,
     int index,
   ) {
-    return AppCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(16),
+    IconData icon;
+    Color accentColor;
+
+    switch (template.category) {
+      case 'İş Hayatı':
+        icon = Icons.work_rounded;
+        accentColor = AppTheme.accentSky;
+        break;
+      case 'Arkadaşlık':
+      case 'Sosyal':
+        icon = Icons.people_rounded;
+        accentColor = AppTheme.accentTeal;
+        break;
+      case 'Romantik':
+        icon = Icons.favorite_rounded;
+        accentColor = AppTheme.accentCoral;
+        break;
+      case 'Aile':
+        icon = Icons.home_rounded;
+        accentColor = Colors.orange;
+        break;
+      default:
+        icon = Icons.explore_rounded;
+        accentColor = AppTheme.accentViolet;
+    }
+
+    return GestureDetector(
+      onTap: () => context.push('/create-scenario', extra: template),
+      child: AppCard(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: accentColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(icon, color: accentColor),
             ),
-            child: Icon(icon, color: accentColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary)),
-                const SizedBox(height: 4),
-                Text(category, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    template.title, 
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.textPrimary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(template.category, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                ],
+              ),
             ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppTheme.accentViolet.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.accentViolet.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => context.push('/create-scenario', extra: template),
+                icon: const Icon(Icons.add_rounded, color: AppTheme.accentViolet),
+              ),
             ),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.add_rounded, color: AppTheme.accentViolet),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: (300 + (index * 100)).ms).slideX(begin: 0.05, end: 0);
+          ],
+        ),
+      ).animate().fadeIn(delay: (300 + (index * 100)).ms).slideX(begin: 0.05, end: 0),
+    );
   }
 }
 

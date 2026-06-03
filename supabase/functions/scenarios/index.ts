@@ -38,9 +38,33 @@ Deno.serve(async (req) => {
         },
         {
           id: 't4',
-          title: 'Hatalı Teslimat Şikayeti',
-          category: 'Diğer',
-          context: 'Bir kargo firmasının müşteri temsilcisine, kırık gelen ürünün iadesi için itiraz ediyorsun.',
+          title: 'Zorlu Geri Bildirim',
+          category: 'İş Hayatı',
+          context: 'Performansı düşen bir ekip arkadaşına, kalbini kırmadan ama durumu net bir şekilde açıklayarak geri bildirim veriyorsun.',
+        },
+        {
+          id: 't5',
+          title: 'Aileyi İkna Et',
+          category: 'Aile',
+          context: 'Kendi kararlarını almak istediğini ve hayatına müdahale edilmesinden rahatsız olduğunu ailene açıklıyorsun.',
+        },
+        {
+          id: 't6',
+          title: 'Hata Kabul Etme',
+          category: 'İş Hayatı',
+          context: 'Önemli bir projede yaptığın hatayı yöneticine dürüstçe açıklayıp çözüm önerileri sunuyorsun.',
+        },
+        {
+          id: 't7',
+          title: 'Ev Arkadaşıyla Tartışma',
+          category: 'Sosyal',
+          context: 'Evdeki temizlik ve düzen konusundaki rahatsızlığını ev arkadaşına uygun bir dille anlatıyorsun.',
+        },
+        {
+          id: 't8',
+          title: 'Müşteri Kaybı Telafisi',
+          category: 'İş Hayatı',
+          context: 'Sizden kaynaklı bir hata nedeniyle ayrılmak isteyen büyük bir müşteriyi kalmaya ikna etmeye çalışıyorsun.',
         }
       ];
       return new Response(JSON.stringify(templates), {

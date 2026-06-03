@@ -2,6 +2,7 @@
 import { handleCors, corsHeaders } from '../_shared/cors.ts';
 import { createAdminClient } from '../_shared/supabaseClient.ts';
 
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') || '';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') || '';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -20,10 +21,10 @@ Deno.serve(async (req) => {
 
       // Önce mevcut analizi kontrol et (çakışmayı önlemek için)
       const { data: existingAnalysis } = await supabase
-        .from('analyses')
-        .select('*')
-        .eq('session_id', sessionId)
-        .maybeSingle();
+          .from('analyses')
+          .select('*')
+          .eq('session_id', sessionId)
+          .maybeSingle();
       
       if (existingAnalysis) {
         return new Response(JSON.stringify(existingAnalysis), {
@@ -32,10 +33,10 @@ Deno.serve(async (req) => {
       }
 
       const { data: messages } = await supabase
-        .from('messages')
-        .select('role, content')
-        .eq('session_id', sessionId)
-        .order('created_at', { ascending: true });
+          .from('messages')
+          .select('role, content')
+          .eq('session_id', sessionId)
+          .order('created_at', { ascending: true });
 
       const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
 
@@ -53,27 +54,71 @@ Deno.serve(async (req) => {
       Konuşma:
       ${conversationText}`;
 
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${GROQ_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: prompt }],
-          response_format: { type: "json_object" }
-        }),
-      });
+      let analysisData;
+      let usedModel = "groq/llama-3.3";
 
-      const result = await response.json();
-      const analysisData = JSON.parse(result.choices[0].message.content);
+      if (GEMINI_API_KEY) {
+        try {
+          console.log("Gemini API ile analiz başlatılıyor...");
+          const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+          const response = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }]
+              }],
+              generationConfig: {
+                responseMimeType: "application/json"
+              }
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Gemini API returned status ${response.status}: ${await response.text()}`);
+          }
+
+          const result = await response.json();
+          const textContent = result.candidates[0].content.parts[0].text;
+          analysisData = JSON.parse(textContent);
+          usedModel = "gemini-2.5-flash";
+          console.log("Gemini analizi başarıyla tamamlandı!");
+        } catch (geminiError) {
+          console.error("Gemini API hatası, Groq/Llama modeline geri dönülüyor:", geminiError);
+        }
+      }
+
+      if (!analysisData) {
+        console.log("Groq API ile analiz başlatılıyor...");
+        const response = await fetch(GROQ_API_URL, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${GROQ_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: "json_object" }
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Groq API returned status ${response.status}: ${await response.text()}`);
+        }
+
+        const result = await response.json();
+        analysisData = JSON.parse(result.choices[0].message.content);
+        console.log("Groq analizi başarıyla tamamlandı!");
+      }
 
       const { data, error } = await supabase
-        .from('analyses')
-        .insert([{ ...analysisData, session_id: sessionId }])
-        .select()
-        .single();
+          .from('analyses')
+          .insert([{ ...analysisData, session_id: sessionId }])
+          .select()
+          .single();
 
       if (error) throw error;
       

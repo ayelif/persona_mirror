@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:persona_mirror/core/theme.dart';
 import 'package:go_router/go_router.dart';
 import 'package:persona_mirror/features/dashboard/views/home_view.dart';
 import 'package:persona_mirror/features/dashboard/views/discovery_view.dart';
 import 'package:persona_mirror/features/dashboard/views/reports_view.dart';
 import 'package:persona_mirror/core/widgets/premium_background.dart';
+import 'package:persona_mirror/core/di/scenario_provider.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int _selectedIndex = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(statsProvider);
+      ref.invalidate(scenariosProvider);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +122,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        if (index == 2) {
+          ref.invalidate(statsProvider);
+        } else if (index == 1) {
+          ref.invalidate(scenariosProvider);
+          ref.invalidate(statsProvider);
+        }
+      },
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

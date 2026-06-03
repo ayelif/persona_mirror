@@ -24,6 +24,7 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
   final _contextController = TextEditingController();
   
   bool _isLoading = false;
+  String _selectedGender = 'female'; // Default to female voice/character
 
   @override
   void initState() {
@@ -65,7 +66,8 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
     try {
       final repository = ref.read(scenarioRepositoryProvider);
       
-      final fullContext = "Karakter Profili: ${_personaController.text}\n\nSenaryo Detayları: ${_contextController.text}";
+      // Store selected gender right inside the context dynamically!
+      final fullContext = "Cinsiyet: ${_selectedGender == 'female' ? 'Kadın' : 'Erkek'}\nKarakter Profili: ${_personaController.text}\n\nSenaryo Detayları: ${_contextController.text}";
 
       final newScenario = await repository.createScenario(
         title: _titleController.text.trim(),
@@ -93,6 +95,37 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
     }
   }
 
+  final List<String> _topicOptions = [
+    'Maaş Zammı', 'Terfi Talebi', 'İstifa Konuşması', 'Sınır Koyma', 
+    'Borç İsteme', 'Ayrılık', 'Özür Dileme', 'Tartışma Çözümü', 'Geri Bildirim'
+  ];
+
+  final List<String> _traitOptions = [
+    'Sert ve Otoriter', 'İnatçı', 'Duygusal', 'Mantıklı ve Analitik', 
+    'Sabırsız', 'Şüpheci', 'Uzlaşmacı', 'Empatik', 'Savunmacı', 'Sakin'
+  ];
+
+  void _onOptionSelected(TextEditingController controller, String option, bool isMulti) {
+    setState(() {
+      if (isMulti) {
+        final currentText = controller.text;
+        if (currentText.contains(option)) {
+          // Remove if already exists (toggle)
+          controller.text = currentText.replaceFirst(currentText.contains(', $option') ? ', $option' : (currentText.startsWith(option) && currentText.contains(', ') ? '$option, ' : option), '').trim();
+        } else {
+          // Add
+          if (currentText.isEmpty) {
+            controller.text = option;
+          } else {
+            controller.text = '$currentText, $option';
+          }
+        }
+      } else {
+        controller.text = option;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,6 +147,8 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
                       'Örn: Maaş Artışı Talebi...',
                       _titleController,
                       1,
+                      _topicOptions,
+                      false,
                     ),
                     _buildStepContent(
                       '👤 Kiminle Konuşacaksın?',
@@ -121,6 +156,8 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
                       'Örn: Sert bir yönetici...',
                       _personaController,
                       3,
+                      _traitOptions,
+                      true,
                     ),
                     _buildStepContent(
                       '📝 Detaylar',
@@ -128,6 +165,8 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
                       'Örn: Ofisteyiz, son 6 ayın performansını sunacağım...',
                       _contextController,
                       5,
+                      null,
+                      false,
                     ),
                   ],
                 ),
@@ -199,48 +238,262 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
     );
   }
 
-  Widget _buildStepContent(String title, String subtitle, String hint, TextEditingController controller, int lines) {
+  Widget _buildStepContent(String title, String subtitle, String hint, TextEditingController controller, int lines, List<String>? options, bool isMulti) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(32),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: AppTheme.textPrimary, letterSpacing: -0.5),
+            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -1),
           ).animate().fadeIn().slideX(begin: -0.1),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             subtitle,
-            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 16),
+            style: TextStyle(color: AppTheme.textSecondary.withValues(alpha: 0.8), fontSize: 16, height: 1.4),
           ).animate().fadeIn(delay: 100.ms),
           const SizedBox(height: 40),
-          TextField(
-            controller: controller,
-            maxLines: lines,
-            style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: AppTheme.textTertiary),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.8),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(20),
-                borderSide: const BorderSide(color: AppTheme.accentViolet, width: 1.5),
-              ),
-              contentPadding: const EdgeInsets.all(24),
+          
+          // TextField with custom styling
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accentViolet.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-          ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.95, 0.95)),
+            child: TextField(
+              controller: controller,
+              maxLines: lines,
+              style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                hintText: hint,
+                hintStyle: const TextStyle(color: AppTheme.textTertiary),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: const BorderSide(color: AppTheme.accentViolet, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(24),
+              ),
+            ),
+          ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.98, 0.98)),
+
+          if (options != null) ...[
+            const SizedBox(height: 48),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentViolet,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  isMulti ? 'Kişilik Özelliklerini Belirle' : 'Popüler Konulardan Seç',
+                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary, fontSize: 15, letterSpacing: 0.2),
+                ),
+              ],
+            ).animate().fadeIn(delay: 300.ms),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 14,
+              children: List.generate(options.length, (index) {
+                final opt = options[index];
+                final isSelected = controller.text.contains(opt);
+                return _buildAestheticChip(
+                  label: opt,
+                  isSelected: isSelected,
+                  onTap: () => _onOptionSelected(controller, opt, isMulti),
+                  index: index,
+                );
+              }),
+            ),
+          ],
+          if (title.contains('👤 Kiminle Konuşacaksın?')) ...[
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentViolet,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'Ses ve Karakter Cinsiyeti',
+                  style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary, fontSize: 15, letterSpacing: 0.2),
+                ),
+              ],
+            ).animate().fadeIn(delay: 350.ms),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildGenderCard('Kadın', Icons.female_rounded, _selectedGender == 'female', () {
+                    setState(() => _selectedGender = 'female');
+                  }),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildGenderCard('Erkek', Icons.male_rounded, _selectedGender == 'male', () {
+                    setState(() => _selectedGender = 'male');
+                  }),
+                ),
+              ],
+            ).animate().fadeIn(delay: 400.ms),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildGenderCard(String label, IconData icon, bool isSelected, VoidCallback onTap) {
+    final color = label == 'Kadın' ? AppTheme.accentViolet : AppTheme.accentSky;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? color : Colors.white.withValues(alpha: 0.8),
+            width: 2,
+          ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ] : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: isSelected ? color : AppTheme.textTertiary),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppTheme.textPrimary : AppTheme.textSecondary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAestheticChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required int index,
+  }) {
+    IconData icon;
+    // Map icons based on label
+    switch (label) {
+      case 'Maaş Zammı': icon = Icons.payments_outlined; break;
+      case 'Terfi Talebi': icon = Icons.trending_up_outlined; break;
+      case 'İstifa Konuşması': icon = Icons.exit_to_app_outlined; break;
+      case 'Sınır Koyma': icon = Icons.security_outlined; break;
+      case 'Borç İsteme': icon = Icons.request_quote_outlined; break;
+      case 'Ayrılık': icon = Icons.heart_broken_outlined; break;
+      case 'Özür Dileme': icon = Icons.sentiment_very_satisfied_outlined; break;
+      case 'Tartışma Çözümü': icon = Icons.handshake_outlined; break;
+      case 'Geri Bildirim': icon = Icons.comment_outlined; break;
+      case 'Sert ve Otoriter': icon = Icons.gavel_outlined; break;
+      case 'İnatçı': icon = Icons.block_outlined; break;
+      case 'Duygusal': icon = Icons.favorite_outlined; break;
+      case 'Mantıklı ve Analitik': icon = Icons.psychology_outlined; break;
+      case 'Sabırsız': icon = Icons.timer_outlined; break;
+      case 'Şüpheci': icon = Icons.search_outlined; break;
+      case 'Uzlaşmacı': icon = Icons.thumbs_up_down_outlined; break;
+      case 'Empatik': icon = Icons.emoji_emotions_outlined; break;
+      case 'Savunmacı': icon = Icons.shield_outlined; break;
+      case 'Sakin': icon = Icons.self_improvement_outlined; break;
+      default: icon = Icons.auto_awesome_outlined;
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.accentViolet : Colors.white.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected ? AppTheme.accentViolet : Colors.white.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: AppTheme.accentViolet.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ] : [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : AppTheme.accentViolet,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(delay: (400 + (index * 50)).ms).scale(begin: const Offset(0.9, 0.9)),
     );
   }
 

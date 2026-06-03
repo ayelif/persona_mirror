@@ -23,9 +23,16 @@ class HomeView extends ConsumerWidget {
         _buildHeader(context, userName).animate().fadeIn(duration: 600.ms).slideX(begin: -0.1, end: 0),
         const SizedBox(height: 24),
         
+        // Günlük Motivasyon / Tavsiye Kartı
+        const _DailyMotivationCard()
+            .animate()
+            .fadeIn(delay: 150.ms)
+            .slideY(begin: 0.1, end: 0, duration: 500.ms),
+        const SizedBox(height: 24),
+        
         // 1. ÜST KISIM: HIZLI BAŞLAT
         _buildSectionHeader('Hızlı Başlat', 'Hemen bir simülasyona gir.')
-            .animate().fadeIn(delay: 200.ms),
+            .animate().fadeIn(delay: 250.ms),
         const SizedBox(height: 16),
         _buildQuickStartRow(context, ref)
             .animate().fadeIn(delay: 300.ms).slideX(begin: 0.1, end: 0),
@@ -340,6 +347,133 @@ class _QuickActionCard extends StatelessWidget {
             Text(subtitle, style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DailyMotivationCard extends StatefulWidget {
+  const _DailyMotivationCard();
+
+  @override
+  State<_DailyMotivationCard> createState() => _DailyMotivationCardState();
+}
+
+class _DailyMotivationCardState extends State<_DailyMotivationCard> {
+  int _currentIndex = 0;
+
+  final List<Map<String, String>> _tips = [
+    {
+      'title': 'Etkin Dinleme',
+      'content': 'Etkin dinleme, karşı taraf konuşurken vereceğin cevabı düşünmek değil, onun ne hissettiğini anlamaya odaklanmaktır. Denemek ister misin?',
+      'icon': '👂',
+    },
+    {
+      'title': 'Ben Dili Kullanımı',
+      'content': 'Zor durumlarda "Sen" dili yerine "Ben" dilini kullanmak savunmaları kırar. Örn: "Beni dinlemiyorsun" yerine "Kendimi ifade edemediğimi hissediyorum" demeyi dene.',
+      'icon': '💬',
+    },
+    {
+      'title': 'Sınır Koyma',
+      'content': 'Hayır demek, sınırlarınızı korumanın en asil yoludur. Başkalarına "Evet" derken kendinize "Hayır" demediğinizden emin olun.',
+      'icon': '🛡️',
+    },
+    {
+      'title': 'Geri Bildirim',
+      'content': 'Geri bildirim bir saldırı değil, gelişim aynasıdır. Savunmaya geçmeden önce sadece teşekkür edip üzerine düşünmek büyük bir olgunlukdur.',
+      'icon': '🎯',
+    },
+    {
+      'title': 'Sessizliğin Gücü',
+      'content': 'Müzakerede sessizlik güçlü bir araçtır. Karşı tarafın duraksadığı anlarda arayı hemen doldurmak yerine sessizliğin alan yaratmasına izin ver.',
+      'icon': '⚡',
+    },
+    {
+      'title': 'Duygu Kontrolü',
+      'content': 'Öfke yükseldiğinde tepki vermeden önce 3 saniye derin nefes al. İlk tepkini dürtülerinle değil, hedeflerine göre hizala.',
+      'icon': '🧘',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = DateTime.now().day % _tips.length;
+  }
+
+  void _nextTip() {
+    setState(() {
+      _currentIndex = (_currentIndex + 1) % _tips.length;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tip = _tips[_currentIndex];
+
+    return AppCard(
+      padding: const EdgeInsets.all(20),
+      backgroundColor: Colors.white.withOpacity(0.85),
+      border: Border.all(color: Colors.white.withOpacity(0.5), width: 1.5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Glowing Icon Container
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.accentViolet.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              tip['icon']!,
+              style: const TextStyle(fontSize: 24),
+            ),
+          ).animate(target: _currentIndex.toDouble()).shake(duration: 500.ms),
+          const SizedBox(width: 16),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'GÜNÜN TAVSİYESİ • ${tip['title']!.toUpperCase()}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.accentViolet,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _nextTip,
+                      child: const Icon(
+                        Icons.refresh_rounded,
+                        size: 18,
+                        color: AppTheme.accentViolet,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  tip['content']!,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppTheme.textPrimary,
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

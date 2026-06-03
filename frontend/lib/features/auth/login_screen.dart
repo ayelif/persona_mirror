@@ -61,8 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 40),
                   
                   // Logo
                   Container(
@@ -150,20 +150,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1),
                   
-                  const SizedBox(height: 24),
-                  const Text('Veya şununla devam et', style: TextStyle(color: AppTheme.mutedTextColor)),
-                  const SizedBox(height: 16),
-                  
-                  // Sosyal Giriş (Google)
-                  OutlinedButton.icon(
-                    onPressed: () {}, // Google logic
-                    icon: const Icon(Icons.login_rounded),
-                    label: const Text('Google ile Giriş'),
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
                   const SizedBox(height: 40),
                 ],
               ),

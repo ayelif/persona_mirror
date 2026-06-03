@@ -49,23 +49,58 @@ class ScenarioRepository {
     return [
       Scenario(
         id: 't1',
-        title: 'Maaş Zammı',
+        title: 'Zam İste',
         category: 'İş Hayatı',
-        context: 'Yöneticinden zam istiyorsun.',
+        context: 'Yöneticinden %30 zam istiyorsun. Şirket hedeflerini tuturdun ama bütçe kısıtlı olabilir.',
         createdAt: DateTime.now(),
       ),
       Scenario(
         id: 't2',
-        title: 'Sınır Koyma',
+        title: 'Sınır Koy',
         category: 'Arkadaşlık',
-        context: 'Bir arkadaşına hayır demen gerekiyor.',
+        context: 'Sürekli borç isteyen bir arkadaşına artık veremeyeceğini nazikçe ama kararlı bir şekilde söylüyorsun.',
         createdAt: DateTime.now(),
       ),
       Scenario(
         id: 't3',
-        title: 'Ayrılık',
+        title: 'İlişkiyi Bitir',
         category: 'Romantik',
-        context: 'İlişkiyi bitirme konuşması.',
+        context: 'Uzun süredir devam eden ama artık yürümeyen ilişkini saygı çerçevesinde sonlandırıyorsun.',
+        createdAt: DateTime.now(),
+      ),
+      Scenario(
+        id: 't4',
+        title: 'Zorlu Geri Bildirim',
+        category: 'İş Hayatı',
+        context: 'Performansı düşen bir ekip arkadaşına geri bildirim veriyorsun.',
+        createdAt: DateTime.now(),
+      ),
+      Scenario(
+        id: 't5',
+        title: 'Aileyi İkna Et',
+        category: 'Aile',
+        context: 'Kendi kararlarını ailene açıklıyorsun.',
+        createdAt: DateTime.now(),
+      ),
+      Scenario(
+        id: 't6',
+        title: 'Hata Kabul Etme',
+        category: 'İş Hayatı',
+        context: 'Yaptığın bir hatayı dürüstçe açıklayıp çözüm sunuyorsun.',
+        createdAt: DateTime.now(),
+      ),
+      Scenario(
+        id: 't7',
+        title: 'Ev Arkadaşıyla Tartışma',
+        category: 'Sosyal',
+        context: 'Evdeki düzen konusundaki rahatsızlığını ev arkadaşına anlatıyorsun.',
+        createdAt: DateTime.now(),
+      ),
+      Scenario(
+        id: 't8',
+        title: 'Müşteri Kaybı Telafisi',
+        category: 'İş Hayatı',
+        context: 'Ayrılmak isteyen müşteriyi kalmaya ikna etmeye çalışıyorsun.',
         createdAt: DateTime.now(),
       ),
     ];
@@ -136,17 +171,16 @@ class ScenarioRepository {
     if (user == null) return {'total_sessions': 0, 'avg_score': 0, 'skills': {}};
 
     try {
-      // Toplam seans sayısı
+      // Toplam seans sayısı (Sadece tamamlanmış provalar)
       final sessionsRes = await _client
           .from('sessions')
           .select('id')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .eq('status', 'completed');
       
       final totalSessions = (sessionsRes as List).length;
 
-      // Analiz sonuçlarından ortalama skorlar
-      // NOT: analyses tablosunda user_id yokmuş, session_id üzerinden join gerekebilir 
-      // ama şimdilik RLS'in çalıştığını veya tümünü getirdiğimizi varsayıyoruz.
+      // Analiz sonuçlarından ortalama skorlar ve rozet kriterleri
       final analysesRes = await _client
           .from('analyses')
           .select('empathy_score, clarity_score, assertiveness_score');
@@ -154,15 +188,32 @@ class ScenarioRepository {
       double avgEmpathy = 0;
       double avgClarity = 0;
       double avgAssertiveness = 0;
+      
+      double maxEmpathy = 0;
+      double maxClarity = 0;
+      double maxAssertiveness = 0;
+      bool hasNetVeKararli = false;
       int count = 0;
 
       if (analysesRes != null && (analysesRes as List).isNotEmpty) {
         final list = analysesRes as List;
         count = list.length;
         for (var item in list) {
-          avgEmpathy += (item['empathy_score'] ?? 0);
-          avgClarity += (item['clarity_score'] ?? 0);
-          avgAssertiveness += (item['assertiveness_score'] ?? 0);
+          final emp = (item['empathy_score'] ?? 0).toDouble();
+          final clr = (item['clarity_score'] ?? 0).toDouble();
+          final asr = (item['assertiveness_score'] ?? 0).toDouble();
+
+          avgEmpathy += emp;
+          avgClarity += clr;
+          avgAssertiveness += asr;
+
+          if (emp > maxEmpathy) maxEmpathy = emp;
+          if (clr > maxClarity) maxClarity = clr;
+          if (asr > maxAssertiveness) maxAssertiveness = asr;
+
+          if (clr >= 8 && asr >= 8) {
+            hasNetVeKararli = true;
+          }
         }
         avgEmpathy /= count;
         avgClarity /= count;
@@ -171,6 +222,55 @@ class ScenarioRepository {
 
       final totalAvg = count > 0 ? (avgEmpathy + avgClarity + avgAssertiveness) / 3 * 10 : 0;
 
+      // Dinamik rozet durumları ve ilerleme hesaplaması
+      final achievements = [
+        {
+          'id': 'first_step',
+          'title': 'İlk Adım',
+          'description': 'Persona Mirror dünyasına ilk adımını atarak ilk provanı başarıyla tamamladın.',
+          'isUnlocked': totalSessions >= 1,
+          'progress': totalSessions >= 1 ? 1.0 : 0.0,
+          'iconName': 'first_step',
+          'colorName': 'violet',
+        },
+        {
+          'id': 'empathy_master',
+          'title': 'Empati Ustası',
+          'description': 'Karşı tarafın duygularını anlama ve onaylama konusunda üstün başarı gösterdin (Skor >= 8).',
+          'isUnlocked': maxEmpathy >= 8,
+          'progress': (maxEmpathy / 8.0).clamp(0.0, 1.0),
+          'iconName': 'empathy',
+          'colorName': 'coral',
+        },
+        {
+          'id': 'clear_assertive',
+          'title': 'Net ve Kararlı',
+          'description': 'Fikirlerini net, dolaysız ve kendinden emin bir şekilde ifade ettin (Netlik & Kararlılık >= 8).',
+          'isUnlocked': hasNetVeKararli,
+          'progress': (((maxClarity / 8.0).clamp(0.0, 1.0) + (maxAssertiveness / 8.0).clamp(0.0, 1.0)) / 2.0).clamp(0.0, 1.0),
+          'iconName': 'assertive',
+          'colorName': 'sky',
+        },
+        {
+          'id': 'negotiation_genius',
+          'title': 'Müzakere Dehası',
+          'description': 'Zorlu durumlarda mükemmel bir denge kurarak genel ortalama skorunu 80+ yaptın.',
+          'isUnlocked': totalSessions >= 1 && totalAvg >= 80,
+          'progress': (totalAvg / 80.0).clamp(0.0, 1.0),
+          'iconName': 'genius',
+          'colorName': 'gold',
+        },
+        {
+          'id': 'consistent_comm',
+          'title': 'İstikrarlı İletişimci',
+          'description': 'Gelişim yolculuğuna sadık kalarak en az 3 adet provayı başarıyla tamamladın.',
+          'isUnlocked': totalSessions >= 3,
+          'progress': (totalSessions / 3.0).clamp(0.0, 1.0),
+          'iconName': 'consistent',
+          'colorName': 'teal',
+        },
+      ];
+
       return {
         'total_sessions': totalSessions,
         'avg_score': totalAvg.toInt(),
@@ -178,11 +278,17 @@ class ScenarioRepository {
           'Empati': avgEmpathy / 10,
           'Netlik': avgClarity / 10,
           'Kararlılık': avgAssertiveness / 10,
-        }
+        },
+        'achievements': achievements,
       };
     } catch (e) {
       print('İstatistik getirme hatası: $e');
-      return {'total_sessions': 0, 'avg_score': 0, 'skills': {}};
+      return {
+        'total_sessions': 0,
+        'avg_score': 0,
+        'skills': {},
+        'achievements': [],
+      };
     }
   }
 }
