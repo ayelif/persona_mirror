@@ -31,7 +31,7 @@ android {
 
     defaultConfig {
         applicationId = "com.personamirror.app"
-        minSdk = 21  // Android 5.0 Lollipop — geniş cihaz desteği
+        minSdk = flutter.minSdkVersion  // Android 5.0 Lollipop — geniş cihaz desteği
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

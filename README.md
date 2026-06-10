@@ -5,6 +5,10 @@ Persona Mirror, sosyal ve profesyonel hayatınızdaki zorlu konuşmaları simül
 
 ---
 
+## 🔗 Teslim Bağlantıları (Delivery Links)
+- 🎥 **Proje Demo Videosu (YouTube/Drive):** https://youtu.be/xovKJYSRIJw
+- 🌐 **Canlı Uygulama Adresi (Web Deploy):** [Vercel veya Netlify Linkinizi Buraya Yapıştırın]
+
 ---
 
 ## 🚀 Özellikler
@@ -21,7 +25,7 @@ Persona Mirror, sosyal ve profesyonel hayatınızdaki zorlu konuşmaları simül
 
 - **Frontend**: Flutter (Dart)
 - **Backend**: Supabase (Edge Functions, Auth, PostgreSQL)
-- **AI**: Anthropic Claude API (LLM)
+- **AI**: Gemini 2.5 Flash & Groq (Llama 3.3)
 - **Tasarım**: Modern Soft UI & Glassmorphism
 
 ---

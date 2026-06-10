@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
 
       const conversationText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
 
-      const prompt = `Aşağıdaki konuşma simülasyonunu analiz et. Kullanıcının (user) performansını Empati, Netlik ve Kararlılık açısından 1-10 arası puanla. Sadece aşağıdaki JSON formatında yanıt ver (ekstra açıklama yazma):
+      const prompt = `Aşağıdaki konuşma simülasyonunu analiz et. Kullanıcının (user) performansını Empati, Netlik ve Kararlılık açısından 1-10 arası puanla. Ayrıca konuşma boyunca karşı tarafın (assistant) hissettiği duygusal değişimleri, motivasyonlarını ve iç sesini "inner_monologue" alanında birinci şahıs ağzından ("Ben") anlat. Sadece aşağıdaki JSON formatında yanıt ver (ekstra açıklama yazma):
       {
         "empathy_score": number,
         "clarity_score": number,
@@ -48,7 +48,8 @@ Deno.serve(async (req) => {
         "summary": "kısa özet",
         "strengths": ["güçlü yan 1"],
         "improvements": ["gelişim alanı 1"],
-        "alternative_lines": ["şu şekilde de diyebilirdin"]
+        "alternative_lines": ["şu şekilde de diyebilirdin"],
+        "inner_monologue": "Karakterin konuşma sırasındaki iç sesi ve hisleri..."
       }
 
       Konuşma:

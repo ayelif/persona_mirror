@@ -20,6 +20,7 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
   int _currentStep = 0;
   
   final _titleController = TextEditingController();
+  final _opponentNameController = TextEditingController();
   final _personaController = TextEditingController();
   final _contextController = TextEditingController();
   
@@ -32,8 +33,36 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
     if (widget.template != null) {
       _titleController.text = widget.template!.title;
       _contextController.text = widget.template!.context;
+      _opponentNameController.text = _parseNameFromContext(widget.template!.context) ?? _getOpponentNameFromTemplate(widget.template!);
       _personaController.text = "Senaryo Şablonu: ${widget.template!.category}";
     }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _opponentNameController.dispose();
+    _personaController.dispose();
+    _contextController.dispose();
+    super.dispose();
+  }
+
+  String? _parseNameFromContext(String context) {
+    if (context.contains('Karakter Adı:')) {
+      final start = context.indexOf('Karakter Adı:') + 'Karakter Adı:'.length;
+      final end = context.indexOf('\n', start);
+      if (end != -1) {
+        return context.substring(start, end).trim();
+      }
+    }
+    return null;
+  }
+
+  String _getOpponentNameFromTemplate(Scenario template) {
+    if (template.category == 'İş Hayatı') return 'Patron';
+    if (template.category == 'Romantik') return 'Eşim / Sevgilim';
+    if (template.category == 'Arkadaşlık') return 'Arkadaşım';
+    return 'Karakter';
   }
 
   void _nextStep() {
@@ -51,7 +80,10 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
   }
 
   Future<void> _handleCreate() async {
-    if (_titleController.text.isEmpty || _personaController.text.isEmpty || _contextController.text.isEmpty) {
+    if (_titleController.text.isEmpty || 
+        _opponentNameController.text.isEmpty || 
+        _personaController.text.isEmpty || 
+        _contextController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Lütfen tüm alanları doldurun.'),
@@ -66,8 +98,8 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
     try {
       final repository = ref.read(scenarioRepositoryProvider);
       
-      // Store selected gender right inside the context dynamically!
-      final fullContext = "Cinsiyet: ${_selectedGender == 'female' ? 'Kadın' : 'Erkek'}\nKarakter Profili: ${_personaController.text}\n\nSenaryo Detayları: ${_contextController.text}";
+      // Store opponent name inside context dynamically!
+      final fullContext = "Karakter Adı: ${_opponentNameController.text.trim()}\nCinsiyet: ${_selectedGender == 'female' ? 'Kadın' : 'Erkek'}\nKarakter Profili: ${_personaController.text.trim()}\n\nSenaryo Detayları: ${_contextController.text.trim()}";
 
       final newScenario = await repository.createScenario(
         title: _titleController.text.trim(),
@@ -150,15 +182,7 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
                       _topicOptions,
                       false,
                     ),
-                    _buildStepContent(
-                      '👤 Kiminle Konuşacaksın?',
-                      'Karşındaki kişinin karakteri nasıl?',
-                      'Örn: Sert bir yönetici...',
-                      _personaController,
-                      3,
-                      _traitOptions,
-                      true,
-                    ),
+                    _buildStep2OpponentContent(),
                     _buildStepContent(
                       '📝 Detaylar',
                       'Ortam nasıl? Hedefin ne?',
@@ -556,6 +580,186 @@ class _CreateScenarioScreenState extends ConsumerState<CreateScenarioScreen> {
                   ],
                 ),
               ).animate().fadeIn(delay: 300.ms).scale(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2OpponentContent() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '👤 Kiminle Konuşacaksın?',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppTheme.textPrimary, letterSpacing: -1),
+          ).animate().fadeIn().slideX(begin: -0.1),
+          const SizedBox(height: 12),
+          Text(
+            'Karşındaki kişinin adını/ünvanını gir ve karakter özelliklerini belirle.',
+            style: TextStyle(color: AppTheme.textSecondary.withValues(alpha: 0.8), fontSize: 16, height: 1.4),
+          ).animate().fadeIn(delay: 100.ms),
+          const SizedBox(height: 32),
+          
+          // Opponent Name Field
+          const Text(
+            'KİŞİNİN ADI VEYA ÜNVANI',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textTertiary, letterSpacing: 0.8),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accentViolet.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _opponentNameController,
+              style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                hintText: 'Örn: Ahmet Bey, Eşim, Müşteri Temsilcisi...',
+                hintStyle: const TextStyle(color: AppTheme.textTertiary),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: AppTheme.accentViolet, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              ),
+            ),
+          ).animate().fadeIn(delay: 150.ms),
+          
+          const SizedBox(height: 24),
+          
+          // Opponent Traits / Description Field
+          const Text(
+            'KARAKTER ÖZELLİKLERİ VE DAVRANIŞ BİÇİMİ',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.textTertiary, letterSpacing: 0.8),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accentViolet.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _personaController,
+              maxLines: 2,
+              style: const TextStyle(fontSize: 16, color: AppTheme.textPrimary, fontWeight: FontWeight.w500),
+              decoration: InputDecoration(
+                hintText: 'Örn: Sert ve Otoriter, kolay kolay ikna olmayan biri...',
+                hintStyle: const TextStyle(color: AppTheme.textTertiary),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.9),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: const BorderSide(color: AppTheme.accentViolet, width: 2),
+                ),
+                contentPadding: const EdgeInsets.all(20),
+              ),
+            ),
+          ).animate().fadeIn(delay: 200.ms),
+          
+          const SizedBox(height: 32),
+          
+          // Persona traits wrapping chips
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentViolet,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Özellik Ekle',
+                style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary, fontSize: 14),
+              ),
+            ],
+          ).animate().fadeIn(delay: 250.ms),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 10,
+            runSpacing: 12,
+            children: List.generate(_traitOptions.length, (index) {
+              final opt = _traitOptions[index];
+              final isSelected = _personaController.text.contains(opt);
+              return _buildAestheticChip(
+                label: opt,
+                isSelected: isSelected,
+                onTap: () => _onOptionSelected(_personaController, opt, true),
+                index: index,
+              );
+            }),
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Gender Selection
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: AppTheme.accentViolet,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Ses ve Karakter Cinsiyeti',
+                style: TextStyle(fontWeight: FontWeight.w800, color: AppTheme.textPrimary, fontSize: 14),
+              ),
+            ],
+          ).animate().fadeIn(delay: 300.ms),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildGenderCard('Kadın', Icons.female_rounded, _selectedGender == 'female', () {
+                  setState(() => _selectedGender = 'female');
+                }),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildGenderCard('Erkek', Icons.male_rounded, _selectedGender == 'male', () {
+                  setState(() => _selectedGender = 'male');
+                }),
+              ),
+            ],
+          ).animate().fadeIn(delay: 350.ms),
         ],
       ),
     );

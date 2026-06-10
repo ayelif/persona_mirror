@@ -174,12 +174,10 @@ class HomeView extends ConsumerWidget {
                 ),
               );
             },
-            onDismissed: (direction) async {
-              await ref.read(scenarioRepositoryProvider).deleteScenario(scenario.id);
+            onDismissed: (direction) {
+              ref.read(scenarioRepositoryProvider).deleteScenario(scenario.id);
               ref.invalidate(scenariosProvider);
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Senaryo silindi')));
-              }
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Senaryo silindi')));
             },
             background: Container(
               alignment: Alignment.centerRight,

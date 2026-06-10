@@ -1,4 +1,6 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:persona_mirror/core/theme.dart';
@@ -30,7 +32,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
   final FlutterTts _tts = FlutterTts();
   bool _speechEnabled = false;
   bool _isListening = false;
-  bool _isSoundOn = true;
+  bool _isSoundOn = false;
 
   @override
   void initState() {
@@ -140,6 +142,63 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
     setState(() => _isListening = false);
   }
 
+  void _triggerHapticIfTense(dynamic simState) {
+    try {
+      if (simState.currentStressLevel >= 7 || simState.currentMood == 'agitated') {
+        HapticFeedback.vibrate();
+      } else if (simState.currentStressLevel >= 4 || simState.currentMood == 'defensive' || simState.currentMood == 'frustrated') {
+        HapticFeedback.lightImpact();
+      }
+    } catch (e) {
+      debugPrint('Haptic feedback failed: $e');
+    }
+  }
+
+  String _getOpponentTitle() {
+    final context = widget.scenario.context;
+    
+    // 1. Yeni format: Karakter Adı
+    if (context.contains('Karakter Adı:')) {
+      final start = context.indexOf('Karakter Adı:') + 'Karakter Adı:'.length;
+      final end = context.indexOf('\n', start);
+      if (end != -1) {
+        final name = context.substring(start, end).trim();
+        if (name.isNotEmpty) return name;
+      }
+    }
+    
+    // 2. İkinci format: Karakter Profili
+    if (context.contains('Karakter Profili:')) {
+      final start = context.indexOf('Karakter Profili:') + 'Karakter Profili:'.length;
+      final end = context.indexOf('\n\nSenaryo Detayları:', start);
+      if (end != -1) {
+        final profile = context.substring(start, end).trim();
+        if (profile.isNotEmpty) {
+          if (profile.startsWith('Senaryo Şablonu:')) {
+            return profile.replaceFirst('Senaryo Şablonu:', '').trim();
+          }
+          if (profile.length > 25) {
+            final commaIndex = profile.indexOf(',');
+            if (commaIndex != -1 && commaIndex > 0) {
+              return profile.substring(0, commaIndex).trim();
+            }
+            return '${profile.substring(0, 22)}...';
+          }
+          return profile;
+        }
+      }
+    }
+    
+    // 3. Eski format / Şablonlar için kategori tabanlı mantıklı isim eşleştirme
+    final category = widget.scenario.category;
+    if (category == 'İş Hayatı') return 'Patron';
+    if (category == 'Romantik') return 'Eşim / Sevgilim';
+    if (category == 'Arkadaşlık') return 'Arkadaşım';
+    if (category == 'Aile') return 'Aile Üyesi';
+    
+    return widget.scenario.category.isNotEmpty ? widget.scenario.category : 'Karakter';
+  }
+
   Future<void> _startSimulation() async {
     ref.read(simulationProvider(widget.scenario.id).notifier).setDifficulty(_selectedDifficulty);
     
@@ -148,6 +207,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       final simState = ref.read(simulationProvider(widget.scenario.id));
       if (simState.messages.isNotEmpty) {
         _speak(simState.messages.first['content']);
+        _triggerHapticIfTense(simState);
       }
     } catch (e) {
       if (mounted) {
@@ -179,6 +239,8 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
       if (mounted) {
         _speak(reply);
         _scrollToBottom();
+        final updatedState = ref.read(simulationProvider(widget.scenario.id));
+        _triggerHapticIfTense(updatedState);
       }
     } catch (e) {
       if (mounted) {
@@ -722,6 +784,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
   }
 
   Widget _buildAppBar(SimulationState simState) {
+    final opponentTitle = _getOpponentTitle();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       child: Row(
@@ -734,7 +797,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
             child: Column(
               children: [
                 Text(
-                  widget.scenario.title, 
+                  opponentTitle, 
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -748,7 +811,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                       decoration: const BoxDecoration(color: AppTheme.accentGreen, shape: BoxShape.circle),
                     ).animate(onPlay: (c) => c.repeat()).fade(duration: 800.ms).then().fade(duration: 800.ms),
                     const SizedBox(width: 6),
-                    const Text('Canlı Simülasyon', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                    Text(widget.scenario.title, style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
                   ],
                 ),
               ],
@@ -825,6 +888,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
   }
 
   Widget _buildTypingIndicator() {
+    final opponentTitle = _getOpponentTitle();
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -839,7 +903,7 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Persona yazıyor', style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
+            Text('$opponentTitle yazıyor', style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w500)),
             const SizedBox(width: 8),
             _buildDot(0),
             _buildDot(1),
@@ -972,17 +1036,26 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
                   ),
                   child: Row(
                     children: [
+                      if (_isListening)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 16),
+                          child: AudioWaveform(),
+                        ),
                       Expanded(
                         child: TextField(
                           controller: _messageController,
                           maxLines: 4,
                           minLines: 1,
                           style: const TextStyle(fontSize: 15, color: AppTheme.textPrimary),
-                          decoration: const InputDecoration(
-                            hintText: 'Mesajınızı yazın...',
-                            hintStyle: TextStyle(color: AppTheme.textTertiary, fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: _isListening ? 'Konuşun, dinleniyor...' : 'Mesajınızı yazın...',
+                            hintStyle: TextStyle(
+                              color: _isListening ? AppTheme.accentCoral : AppTheme.textTertiary,
+                              fontSize: 14,
+                              fontStyle: _isListening ? FontStyle.italic : null,
+                            ),
                             border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           ),
                           onSubmitted: (_) => _sendMessage(),
                         ),
@@ -1026,6 +1099,58 @@ class _SimulationScreenState extends ConsumerState<SimulationScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class AudioWaveform extends StatefulWidget {
+  const AudioWaveform({super.key});
+
+  @override
+  State<AudioWaveform> createState() => _AudioWaveformState();
+}
+
+class _AudioWaveformState extends State<AudioWaveform> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (index) {
+        return AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final waveValue = (index * 0.25 + _controller.value) * 2 * math.pi;
+            final double height = 6 + (14 * (0.5 + 0.5 * math.sin(waveValue)));
+            return Container(
+              width: 3.0,
+              height: height,
+              margin: const EdgeInsets.symmetric(horizontal: 1.5),
+              decoration: BoxDecoration(
+                color: AppTheme.accentCoral,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 }

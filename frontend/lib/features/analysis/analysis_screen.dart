@@ -162,6 +162,8 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         children: [
           _buildScoreCard(context, data),
           const SizedBox(height: 24),
+          _buildInnerMonologueSection(data['inner_monologue'] ?? ''),
+          const SizedBox(height: 16),
           _buildAnalysisSection('Özet', data['summary'] ?? '', Icons.summarize_rounded, AppTheme.accentSky),
           const SizedBox(height: 16),
           _buildListSection('Güçlü Yanların', data['strengths'] ?? [], Icons.trending_up_rounded, AppTheme.accentTeal),
@@ -299,6 +301,79 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         ],
       ),
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1);
+  }
+
+  Widget _buildInnerMonologueSection(String content) {
+    if (content.isEmpty) return const SizedBox.shrink();
+
+    return AppCard(
+      padding: const EdgeInsets.all(24),
+      backgroundColor: AppTheme.accentViolet.withValues(alpha: 0.05),
+      border: Border.all(
+        color: AppTheme.accentViolet.withValues(alpha: 0.15),
+        width: 1.5,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentViolet.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.psychology_rounded,
+                  color: AppTheme.accentViolet,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Karakterin İç Dünyası',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 17,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                child: Opacity(
+                  opacity: 0.1,
+                  child: Icon(
+                    Icons.format_quote_rounded,
+                    size: 38,
+                    color: AppTheme.accentViolet,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 24, top: 8, right: 8),
+                child: Text(
+                  content,
+                  style: const TextStyle(
+                    height: 1.6,
+                    color: AppTheme.accentViolet,
+                    fontSize: 14.5,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.1);
   }
 
 }
