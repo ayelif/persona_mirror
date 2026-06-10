@@ -7,7 +7,7 @@ Persona Mirror, sosyal ve profesyonel hayatınızdaki zorlu konuşmaları simül
 
 ## 🔗 Teslim Bağlantıları (Delivery Links)
 - 🎥 **Proje Demo Videosu (YouTube/Drive):** https://youtu.be/xovKJYSRIJw
-- 🌐 **Canlı Uygulama Adresi (Web Deploy):** [Vercel veya Netlify Linkinizi Buraya Yapıştırın]
+- 🌐 **Canlı Uygulama Adresi (Web Deploy):** https://personamirror.vercel.app
 
 ---
 
